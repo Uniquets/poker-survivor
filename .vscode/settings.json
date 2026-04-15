@@ -1,0 +1,9 @@
+{
+  // Godot 可执行路径请在用户设置中配置 godotTools.editorPath.godot4，勿提交本机绝对路径。
+  "godotTools.lsp.serverPort": 6005,
+  "godotTools.lsp.headless": false,
+  "[gdscript]": {
+    "editor.defaultFormatter": "geequlim.godot-tools",
+    "editor.formatOnSave": false
+  }
+}

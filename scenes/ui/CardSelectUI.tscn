@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://ck2124e281tii"]
+
+[ext_resource type="Script" uid="uid://dtnsrugxruf8n" path="res://scripts/ui/card_select_ui.gd" id="1_4q235"]
+[ext_resource type="PackedScene" uid="uid://bk1234568aa0" path="res://scenes/ui/Card.tscn" id="2_hkt8p"]
+[ext_resource type="PackedScene" uid="uid://el34568aa012" path="res://scenes/ui/CardContainer.tscn" id="3_card_container"]
+
+[node name="CardSelectUI" type="Control" unique_id=638656997]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4q235")
+card_scene = ExtResource("2_hkt8p")
+
+[node name="Title" type="Label" parent="." unique_id=579459279]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 80.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 36
+text = "选择你的卡牌"
+horizontal_alignment = 1
+
+[node name="Progress" type="Label" parent="." unique_id=1488900324]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 160.0
+offset_bottom = 190.0
+theme_override_font_sizes/font_size = 28
+text = "1/3"
+horizontal_alignment = 1
+
+[node name="CardContainer" parent="." unique_id=1197492433 instance=ExtResource("3_card_container")]
+layout_mode = 1
+theme_override_constants/separation = 100

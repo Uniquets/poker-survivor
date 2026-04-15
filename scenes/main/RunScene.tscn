@@ -1,0 +1,97 @@
+[gd_scene format=3 uid="uid://cioyd4a05orja"]
+
+[ext_resource type="Script" uid="uid://b4bypauawi0fo" path="res://scripts/combat/run_scene.gd" id="1_w7q4f"]
+[ext_resource type="PackedScene" uid="uid://d4m25gbsqdmh1" path="res://scenes/enemies/Enemy.tscn" id="2_630kg"]
+[ext_resource type="Script" uid="uid://bsctrdnr2e3j0" path="res://scripts/combat/player.gd" id="3_hyatr"]
+[ext_resource type="Script" uid="uid://c37d4obentyn3" path="res://scripts/combat/enemy_manager.gd" id="4_u31j7"]
+[ext_resource type="Script" uid="uid://d2lehupgnobpi" path="res://scripts/combat/auto_attack_system.gd" id="5_kj0tq"]
+[ext_resource type="Script" uid="uid://cmbvtx8rnsqof" path="res://scripts/cards/card_runtime.gd" id="7_cardruntime"]
+[ext_resource type="PackedScene" uid="uid://bk2124e281tii" path="res://scenes/ui/CardHandUI.tscn" id="8_cardhandui"]
+[ext_resource type="PackedScene" uid="uid://ck2124e281tii" path="res://scenes/ui/CardSelectUI.tscn" id="9_cardselectui"]
+[ext_resource type="PackedScene" uid="uid://di0h8xybcel3e" path="res://scenes/ui/HandSortPanel.tscn" id="10_handsort"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_q3y8k"]
+radius = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_bg"]
+bg_color = Color(0.09, 0.1, 0.14, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
+bg_color = Color(0.2, 0.9, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="RunScene" type="Node2D" unique_id=1680317344]
+script = ExtResource("1_w7q4f")
+enable_test_functions = true
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=758246544]
+position = Vector2(640, 360)
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=288374542]
+position = Vector2(640, 360)
+script = ExtResource("3_hyatr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1224804788]
+shape = SubResource("CircleShape2D_q3y8k")
+
+[node name="EnemyManager" type="Node" parent="." unique_id=1208270822]
+script = ExtResource("4_u31j7")
+enemy_scene = ExtResource("2_630kg")
+
+[node name="CardRuntime" type="Node" parent="." unique_id=1289256394]
+script = ExtResource("7_cardruntime")
+
+[node name="AutoAttackSystem" type="Node" parent="." unique_id=398318519]
+script = ExtResource("5_kj0tq")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=505467996]
+
+[node name="HealthBar" type="ProgressBar" parent="HUD" unique_id=1328390801]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 52.0
+theme_override_styles/background = SubResource("StyleBoxFlat_health_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_health_fill")
+value = 100.0
+show_percentage = false
+
+[node name="HealthText" type="Label" parent="HUD" unique_id=913743965]
+offset_left = 30.0
+offset_top = 22.0
+offset_right = 290.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(0.96, 0.98, 1, 1)
+text = "HP 100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CardSelectUI" parent="HUD" unique_id=1546165101 instance=ExtResource("9_cardselectui")]
+
+[node name="CardHandUI" parent="HUD" unique_id=601139034 instance=ExtResource("8_cardhandui")]
+
+[node name="AddCardButton" type="Button" parent="HUD" unique_id=1]
+visible = false
+offset_left = 10.0
+offset_top = 60.0
+offset_right = 110.0
+offset_bottom = 90.0
+text = "添加卡牌"
+
+[node name="SortHandButton" type="Button" parent="HUD" unique_id=1252945657]
+visible = false
+offset_left = 120.0
+offset_top = 60.0
+offset_right = 250.0
+offset_bottom = 90.0
+text = "排序调整"
+
+[node name="HandSortPanel" parent="HUD" unique_id=1147562400 instance=ExtResource("10_handsort")]
+visible = false

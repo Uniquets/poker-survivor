@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://bk2124e281tii"]
+
+[ext_resource type="Script" uid="uid://5i20nk5k0bm4" path="res://scripts/ui/card_hand_ui.gd" id="1_4q234"]
+[ext_resource type="PackedScene" uid="uid://bk1234568aa0" path="res://scenes/ui/Card.tscn" id="2_card"]
+
+[node name="CardHandUI" type="HBoxContainer" unique_id=601139034]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -120.0
+offset_right = 400.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset_ratio = Vector2(50, -50)
+script = ExtResource("1_4q234")
+card_scene = ExtResource("2_card")

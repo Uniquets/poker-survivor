@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://d3f6aeemksudl"]
+
+[ext_resource type="Script" uid="uid://dwu2y80iuwprv" path="res://scripts/combat/projectile.gd" id="1"]
+
+[node name="Projectile" type="Node2D" unique_id=1412587799]
+script = ExtResource("1")
+hit_text_duration = 0.5
+hit_text_move_distance = 20.0
+_test_hit_effect = true
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=685375007]
+scale = Vector2(0.8, 0.8)
+
+[node name="Trail" type="Line2D" parent="." unique_id=1883068532]
+width = 3.0
+default_color = Color(1, 0.8, 0.2, 1)
+antialiased = true

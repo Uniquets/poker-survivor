@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Godot: Run game (main scene)",
+      "type": "process",
+      "command": "${config:godotTools.editorPath.godot4}",
+      "args": ["--path", "${workspaceFolder}"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Godot: Open editor with project",
+      "type": "process",
+      "command": "${config:godotTools.editorPath.godot4}",
+      "args": ["-e", "--path", "${workspaceFolder}"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}

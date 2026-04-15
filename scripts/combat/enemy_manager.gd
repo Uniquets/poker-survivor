@@ -1,0 +1,60 @@
+extends Node
+class_name EnemyManager
+## 在玩家周围按间隔生成敌人，并限制场上最大数量
+
+## 敌人场景预制
+@export var enemy_scene: PackedScene
+## 生成间隔（秒）
+@export var spawn_interval_seconds: float = CombatTuning.ENEMY_SPAWN_INTERVAL_SECONDS
+## 场上敌人数量上限
+@export var max_alive_enemies: int = CombatTuning.ENEMY_MAX_ALIVE
+## 相对目标生成半径（像素）
+@export var spawn_radius: float = CombatTuning.ENEMY_SPAWN_RADIUS
+## 追击目标节点（通常为玩家）
+@export var target: Node2D
+
+## 距上次生成累计秒数
+var _spawn_timer := 0.0
+## 是否允许生成
+var _active := true
+
+
+## 初始化随机种子
+func _ready() -> void:
+	randomize()
+
+
+## 计时满足且未达上限时生成一只怪
+func _process(delta: float) -> void:
+	if not _active:
+		return
+	if enemy_scene == null or not is_instance_valid(target):
+		return
+	if get_child_count() >= max_alive_enemies:
+		return
+
+	_spawn_timer += delta
+	if _spawn_timer < spawn_interval_seconds:
+		return
+
+	_spawn_timer = 0.0
+	_spawn_enemy()
+
+
+## 开关生成逻辑（选牌阶段可关）
+func set_active(active: bool) -> void:
+	_active = active
+
+
+## 在目标周围随机角度摆一只敌人并设 target
+func _spawn_enemy() -> void:
+	var enemy := enemy_scene.instantiate()
+	if enemy == null:
+		return
+
+	var random_direction := Vector2.RIGHT.rotated(randf_range(0.0, TAU))
+	enemy.global_position = target.global_position + random_direction * spawn_radius
+	enemy.target = target
+	add_child(enemy)
+
+	print("[spawn] enemy_spawned | count=%d" % get_child_count())

@@ -1,0 +1,34 @@
+# Godot 4+ 编辑器与导入缓存（勿提交）
+.godot/
+
+# Godot 一键导出 Android 时常见生成目录
+/android/
+
+#  gettext 编译产物（若使用本地化且不想提交二进制）
+*.translation
+
+# 操作系统垃圾文件
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 常见导出/构建输出目录（有则忽略；可按你本机实际目录名增删）
+/export/
+/build/
+dist/
+
+# 编辑器与工具临时文件
+*.tmp
+*~
+
+# JetBrains Rider / IDEA
+.idea/
+
+# Visual Studio（若日后 C# 或外部调试）
+.vs/
+
+# 日志
+*.log
+
+# export_presets.cfg 通常可提交（不含密码时）；若含密钥或证书路径，再单独忽略：
+# export_presets.cfg

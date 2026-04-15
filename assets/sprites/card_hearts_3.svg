@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="110" viewBox="0 0 80 110">
+  <rect width="80" height="110" rx="6" ry="6" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+  
+  <text x="8" y="20" font-family="Arial" font-size="18" font-weight="bold" fill="#cc2222">3</text>
+  <text x="8" y="38" font-family="Arial" font-size="20" fill="#cc2222">♥</text>
+  
+  <text x="65" y="95" font-family="Arial" font-size="18" font-weight="bold" fill="#cc2222" transform="rotate(180, 68, 85)">3</text>
+  <text x="65" y="113" font-family="Arial" font-size="20" fill="#cc2222" transform="rotate(180, 68, 103)">♥</text>
+  
+  <g transform="translate(40, 55)">
+    <text x="-10" y="-15" font-family="Arial" font-size="24" fill="#cc2222">♥</text>
+    <text x="-10" y="5" font-family="Arial" font-size="24" fill="#cc2222">♥</text>
+    <text x="-10" y="25" font-family="Arial" font-size="24" fill="#cc2222">♥</text>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://dk2124e281tii"]
+
+[ext_resource type="Script" uid="uid://cadavvob6045q" path="res://scripts/ui/card_element.gd" id="1_4q233"]
+
+[node name="CardElement" type="Control" unique_id=601139033]
+script = ExtResource("1_4q233")
+rect_size = Vector2(80, 110)
