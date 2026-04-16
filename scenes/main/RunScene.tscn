@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bk2124e281tii" path="res://scenes/ui/CardHandUI.tscn" id="8_cardhandui"]
 [ext_resource type="PackedScene" uid="uid://ck2124e281tii" path="res://scenes/ui/CardSelectUI.tscn" id="9_cardselectui"]
 [ext_resource type="PackedScene" uid="uid://di0h8xybcel3e" path="res://scenes/ui/HandSortPanel.tscn" id="10_handsort"]
+[ext_resource type="PackedScene" path="res://scenes/ui/TestMenuPanel.tscn" id="11_testmenu"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q3y8k"]
 radius = 14.0
@@ -77,21 +78,7 @@ vertical_alignment = 1
 
 [node name="CardHandUI" parent="HUD" unique_id=601139034 instance=ExtResource("8_cardhandui")]
 
-[node name="AddCardButton" type="Button" parent="HUD" unique_id=1]
-visible = false
-offset_left = 10.0
-offset_top = 60.0
-offset_right = 110.0
-offset_bottom = 90.0
-text = "添加卡牌"
-
-[node name="SortHandButton" type="Button" parent="HUD" unique_id=1252945657]
-visible = false
-offset_left = 120.0
-offset_top = 60.0
-offset_right = 250.0
-offset_bottom = 90.0
-text = "排序调整"
-
 [node name="HandSortPanel" parent="HUD" unique_id=1147562400 instance=ExtResource("10_handsort")]
 visible = false
+
+[node name="TestMenuPanel" parent="HUD" unique_id=1995641403 instance=ExtResource("11_testmenu")]

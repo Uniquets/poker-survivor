@@ -106,3 +106,12 @@ func get_available_count() -> int:
 ## 当前处于「已抽未消耗」追踪中的张数
 func get_drawn_count() -> int:
 	return _drawn_cards.size()
+
+
+## 测试用：新建一张牌（**不从**牌库 `_available_cards` 抽取，也不记入 `_drawn_cards`），伤害规则与 `_apply_default_damage` 一致，供自选花点直接入手
+func create_standalone_test_card(suit: int, rank: int) -> CardResource:
+	var su: int = clampi(suit, 0, 3)
+	var rk: int = clampi(rank, 1, 13)
+	var c := CardResource.new(su, rk)
+	_apply_default_damage(c)
+	return c

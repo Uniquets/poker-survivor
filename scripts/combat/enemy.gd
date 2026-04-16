@@ -54,7 +54,9 @@ func apply_damage(amount: int) -> void:
 	if _dead:
 		return
 
-	var clamped_damage = max(amount, 0)
+	var clamped_damage: int = maxi(amount, 0)
+	if clamped_damage > 0:
+		GameToolSingleton.world_damage_float(global_position, clamped_damage, Vector2(0, -22))
 	current_health = max(current_health - clamped_damage, 0)
 	if current_health > 0:
 		return

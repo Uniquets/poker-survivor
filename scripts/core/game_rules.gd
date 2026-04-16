@@ -1,5 +1,6 @@
-extends Node
-## 玩法常量与枚举（与 RULES 文档对齐的数值/类型占位，供数据与工具使用）
+extends RefCounted
+class_name GameRules
+## 玩法常量与枚举（与 RULES 文档对齐；`RefCounted` + `class_name` 便于全项目静态访问，非场景节点）
 
 const INITIAL_HAND_SIZE: int = 3 ## 默认初始手牌张数
 const BASE_PLAY_INTERVAL: float = 0.5 ## 默认出牌间隔（秒）
@@ -41,18 +42,49 @@ enum Rank {
 	KING
 }
 
-## 牌型分类占位
-enum HandType {
-	SINGLE,
-	PAIR,
-	THREE_OF_A_KIND,
-	FOUR_OF_A_KIND,
-	STRAIGHT
+
+## 与 `GroupDetector.get_group_type` 返回值字符串一一对应（`EffectResolver` 等分支用）
+enum GroupType {
+	NONE,               ## 无组型
+	SINGLE,             ## 单张
+	PAIR,               ## 对子
+	THREE_OF_A_KIND,    ## 三条
+	FOUR_OF_A_KIND,     ## 四条
+	STRAIGHT,           ## 顺子
+	CONSECUTIVE_PAIRS,  ## 连对
+	CONSECUTIVE_TRIPS,  ## 连三
+	INVALID,            ## 非法组型
+	OTHER,              ## 未在检测器协议中的字符串，走默认乘区
 }
 
 
+## 将组类型字符串转为 `GroupType`；未知则 `OTHER`
+static func group_type_from_detector_string(s: String) -> int:
+	match s:
+		"NONE":
+			return GroupType.NONE
+		"SINGLE":
+			return GroupType.SINGLE
+		"PAIR":
+			return GroupType.PAIR
+		"THREE_OF_A_KIND":
+			return GroupType.THREE_OF_A_KIND
+		"FOUR_OF_A_KIND":
+			return GroupType.FOUR_OF_A_KIND
+		"STRAIGHT":
+			return GroupType.STRAIGHT
+		"CONSECUTIVE_PAIRS":
+			return GroupType.CONSECUTIVE_PAIRS
+		"CONSECUTIVE_TRIPS":
+			return GroupType.CONSECUTIVE_TRIPS
+		"INVALID":
+			return GroupType.INVALID
+		_:
+			return GroupType.OTHER
+
+
 ## 将 Rank 枚举转为比较用数值（A=14）
-func get_rank_value(rank: Rank) -> int:
+static func get_rank_value(rank: Rank) -> int:
 	match rank:
 		Rank.ACE:
 			return 14
@@ -84,7 +116,7 @@ func get_rank_value(rank: Rank) -> int:
 
 
 ## 将 Rank 枚举转为显示用短字符串
-func get_rank_name(rank: Rank) -> String:
+static func get_rank_name(rank: Rank) -> String:
 	match rank:
 		Rank.ACE:
 			return "A"
@@ -116,7 +148,7 @@ func get_rank_name(rank: Rank) -> String:
 
 
 ## 将 Suit 枚举转为显示用花色符号
-func get_suit_name(suit: Suit) -> String:
+static func get_suit_name(suit: Suit) -> String:
 	match suit:
 		Suit.SPADES:
 			return "♠"

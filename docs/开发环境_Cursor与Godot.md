@@ -36,6 +36,36 @@
 
 在 Godot **编辑器设置 → 文本编辑器 → 外部**，启用外部编辑器，`Exec Path` 填本机 **Cursor** 可执行文件（Windows 一般在 `%LocalAppData%\Programs\cursor\Cursor.exe`），`Exec Flags` 使用 Godot 文档中的：`{project} --goto {file}:{line}:{col}`（Godot 4.5+ 常可自动识别）。
 
-## 6. 与本项目 MCP
+## 6. 与本项目 MCP（Godot MCP Pro）
 
-`addons/godot_mcp` 为编辑器插件，与 Cursor 内 GDScript 调试无关；不要依赖 MCP 跑正式游戏逻辑。
+`addons/godot_mcp` 为 **Godot MCP Pro** 编辑器插件：通过 WebSocket 把 **已打开的 Godot 4 编辑器** 接到 Cursor 的 MCP，供 AI 调用「改场景 / 读脚本 / **跑游戏并看画面**」等工具。**游戏发布包不得依赖 MCP**；仅用于开发与联调测试。
+
+### 6.1 使用前检查
+
+1. **本机 Godot 4.6+** 用「项目 → 打开」载入本仓库根目录（含 `project.godot`）。  
+2. **项目 → 项目设置 → 插件**：启用 **Godot MCP Pro**；底部 **MCP** 面板（或插件文档）会显示 **WebSocket 地址**（常见为 `ws://127.0.0.1:9080` 等，以你本机为准）。  
+3. **Cursor → Settings → MCP**：按插件官方说明添加对应 MCP 服务器（URL 与 Godot 面板一致）；保存后确认连接状态为已连接。  
+4. 在对话里让 Agent **先读 MCP 工具列表/描述再调用**，避免盲调参数。
+
+**Agent 在本机 Cursor 中调用 MCP 时的 `server` 标识**：一般为 **`user-godot-mcp-pro`**（与你在 `~/.cursor/mcp.json` 里配置的键名如 `godot-mcp-pro` 可能不同；以 Cursor 为当前工程生成的 MCP 描述为准）。若 `call_mcp_tool` 报「server does not exist」，请在 Cursor **MCP 面板**查看该 Godot 服务器在列表里的准确 ID。
+
+### 6.2 推荐测试循环（与 `addons/godot_mcp/skills.zh.md` 一致）
+
+适合验证「主场景能跑、出牌、弹道/爆炸/治疗」等，而不仅靠无头命令行：
+
+| 步骤 | MCP 工具（示意名） | 作用 |
+|------|-------------------|------|
+| 1 | `validate_script` | 改完 `.gd` 后先校验语法，再进游戏。 |
+| 2 | `play_scene`（`mode: "main"` 或主场景路径） | 启动运行实例。 |
+| 3 | `get_game_screenshot` / `capture_frames` | 看画面、多帧行为。 |
+| 4 | `simulate_key`、`simulate_action`、`simulate_mouse_click` | 移动、选牌 UI 等交互。 |
+| 5 | `get_game_scene_tree`、`get_game_node_properties` | 查运行时节点与数值（如生命、手牌节点是否存在）。 |
+| 6 | `get_editor_errors` | 看运行期报错。 |
+| 7 | `stop_scene` | 结束运行，避免与下一次 `play_scene` 冲突。 |
+
+**本仓库与效果管线相关时**：可让 Agent 在 `play_scene` 后关注控制台或 `get_editor_errors`，并对 `RunScene` / `AutoAttackSystem` / `CardRuntime` 等节点用 `get_game_node_properties` 做抽查；**关键张 §10** 仍以 `docs/测试与进度.md` 中手动用例为准，MCP 用于加速「跑起来 + 看状态」而非替代规则文档。
+
+### 6.3 局限
+
+- MCP **不会**替代你在 Godot 里第一次配置插件与 Cursor MCP；未连接时 Agent 无法代为「远程点编辑器」。  
+- 无 Godot 窗口/无插件时，请仍用 **§3 任务** 或命令行 `--headless` 等方式验证。

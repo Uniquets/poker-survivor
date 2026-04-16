@@ -95,7 +95,6 @@ func _on_group_played(group_cards: Array, _group_type: String) -> void:
 ## 对 [start, end) 范围内的卡槽统一调用 _activate_card_tween 实现弹出动画
 func _play_group_activation_tween(start: int, end: int) -> void:
 	print("[ui] CardHandUI _play_group_activation_tween，播放卡牌动画")
-	var ran: bool = false
 	for i in range(start, end):
 		if i < 0 or i >= _card_elements.size():
 			continue
@@ -108,8 +107,7 @@ func _play_group_activation_tween(start: int, end: int) -> void:
 		var c := nudge.get_child(0) as Control
 		if c == null or not is_instance_valid(c):
 			continue
-		if _activate_card_tween(nudge, c):
-			ran = true
+		_activate_card_tween(nudge, c)
 #
 	#if ran and _activation_cleanup_timer != null:
 		#_activation_cleanup_timer.stop()

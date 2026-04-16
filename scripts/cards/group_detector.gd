@@ -1,6 +1,6 @@
 extends RefCounted
 class_name GroupDetector
-## 从左到右在给定起点上取「最长合法组」：与 RULES 优先级一致
+## 从左到右在给定起点上取「最长合法组」：与 RULES 优先级一致；对外请用 **`GroupDetector.find_longest_group` 等静态方法**（内部懒单例转发）
 
 ## 顺子最少张数
 const STRAIGHT_MIN_LENGTH: int = 3
@@ -11,9 +11,49 @@ const CONSECUTIVE_PAIRS_MIN: int = 2
 ## 飞机至少包含的三条组数
 const CONSECUTIVE_TRIPS_MIN: int = 2
 
+## 进程内唯一实例（无跨出牌步的组牌缓存，仅复用算法对象）
+static var _singleton: GroupDetector = null
 
-## 从 start_index 起在候选类型中取最长组，同长比优先级
-func find_longest_group(cards: Array, start_index: int) -> Array:
+
+## 懒加载单例，供静态 API 转发
+static func _ensure_singleton() -> GroupDetector:
+	if _singleton == null:
+		_singleton = GroupDetector.new()
+	return _singleton
+
+
+## 静态入口：从 `start_index` 起在候选类型中取最长组，同长比优先级
+static func find_longest_group(cards: Array, start_index: int) -> Array:
+	return _ensure_singleton()._find_longest_group(cards, start_index)
+
+
+## 静态入口：根据组内牌判定 `group_type` 字符串
+static func get_group_type(cards: Array) -> String:
+	return _ensure_singleton()._get_group_type(cards)
+
+
+## 静态入口：非空且类型非 NONE/INVALID 则有效
+static func is_valid_group(cards: Array) -> bool:
+	return _ensure_singleton()._is_valid_group(cards)
+
+
+## 静态入口：至少两张且花色全相同
+static func has_same_suit(cards: Array) -> bool:
+	return _ensure_singleton()._has_same_suit(cards)
+
+
+## 静态入口：统计 `cards` 中某花色张数
+static func get_suit_count(cards: Array, suit: int) -> int:
+	return _ensure_singleton()._get_suit_count(cards, suit)
+
+
+## 静态入口：组类型字符串转中文展示名
+static func get_group_type_description(group_type: String) -> String:
+	return _ensure_singleton()._get_group_type_description(group_type)
+
+
+## 实例实现：从 `start_index` 起在候选类型中取最长组，同长比优先级
+func _find_longest_group(cards: Array, start_index: int) -> Array:
 	if start_index >= cards.size():
 		return []
 
@@ -54,7 +94,7 @@ func find_longest_group(cards: Array, start_index: int) -> Array:
 		if candidate.size() > longest.size():
 			longest = candidate
 		elif candidate.size() == longest.size():
-			if _get_group_priority(get_group_type(candidate)) > _get_group_priority(get_group_type(longest)):
+			if _get_group_priority(_get_group_type(candidate)) > _get_group_priority(_get_group_type(longest)):
 				longest = candidate
 	
 	return longest
@@ -201,8 +241,8 @@ func _find_consecutive_trips(cards: Array, start_index: int) -> Array:
 		return group
 	return []
 
-## 根据已排序 rank 列表判定组类型字符串
-func get_group_type(cards: Array) -> String:
+## 实例实现：根据组内牌判定组类型字符串
+func _get_group_type(cards: Array) -> String:
 	if cards.size() == 0:
 		return "NONE"
 	
@@ -319,18 +359,18 @@ func _get_group_priority(group_type: String) -> int:
 	}
 	return priorities.get(group_type, 0)
 
-## 非空且类型非 NONE/INVALID 则有效
-func is_valid_group(cards: Array) -> bool:
+## 实例实现：非空且类型非 NONE/INVALID 则有效
+func _is_valid_group(cards: Array) -> bool:
 	if cards.size() == 0:
 		return false
 	if cards.size() == 1:
 		return true
 	
-	var group_type = get_group_type(cards)
+	var group_type: String = _get_group_type(cards)
 	return group_type != "NONE" && group_type != "INVALID"
 
-## 至少两张且花色全相同
-func has_same_suit(cards: Array) -> bool:
+## 实例实现：至少两张且花色全相同
+func _has_same_suit(cards: Array) -> bool:
 	if cards.size() < 2:
 		return false
 	
@@ -340,16 +380,16 @@ func has_same_suit(cards: Array) -> bool:
 			return false
 	return true
 
-## 统计 cards 中某花色张数
-func get_suit_count(cards: Array, suit: int) -> int:
+## 实例实现：统计 cards 中某花色张数
+func _get_suit_count(cards: Array, suit: int) -> int:
 	var count: int = 0
 	for card in cards:
 		if card.suit == suit:
 			count += 1
 	return count
 
-## 组类型字符串转中文展示名
-func get_group_type_description(group_type: String) -> String:
+## 实例实现：组类型字符串转中文展示名
+func _get_group_type_description(group_type: String) -> String:
 	var descriptions = {
 		"FOUR_OF_A_KIND": "炸弹",
 		"CONSECUTIVE_TRIPS": "飞机",

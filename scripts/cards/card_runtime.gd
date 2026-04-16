@@ -201,11 +201,9 @@ func _play_current_group() -> void:
 		play_timer = 0.0
 		return
 
-	var detector = load("res://scripts/cards/group_detector.gd").new()
-	var group = detector.find_longest_group(cards, current_index)
-	
+	var group: Array = GroupDetector.find_longest_group(cards, current_index)
 	if group.size() > 0:
-		var group_type = detector.get_group_type(group)
+		var group_type: String = GroupDetector.get_group_type(group)
 		emit_signal("group_played", group, group_type)
 		
 		# for card in group:

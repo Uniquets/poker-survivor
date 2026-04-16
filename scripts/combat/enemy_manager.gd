@@ -2,6 +2,15 @@ extends Node
 class_name EnemyManager
 ## 在玩家周围按间隔生成敌人，并限制场上最大数量
 
+## 进程内当前敌人管理器引用（`_enter_tree` 写入、`_exit_tree` 清空）；本局仅应存在一个 `EnemyManager`；其它脚本经 `preload` 后调用 `get_enemy_manager()` 或读此字段
+static var enemy_manager_singleton: EnemyManager = null
+
+
+## 返回当前已注册的全局敌人管理器；未进树或已出场时为 null（跨脚本请 `preload("enemy_manager.gd")` 再调本方法）
+static func get_enemy_manager() -> EnemyManager:
+	return enemy_manager_singleton
+
+
 ## 敌人场景预制
 @export var enemy_scene: PackedScene
 ## 生成间隔（秒）
@@ -17,6 +26,19 @@ class_name EnemyManager
 var _spawn_timer := 0.0
 ## 是否允许生成
 var _active := true
+
+
+## 进入场景树时注册为全局单例（供 `CombatEffectRunner`、索敌等获取）
+func _enter_tree() -> void:
+	if enemy_manager_singleton != null and is_instance_valid(enemy_manager_singleton) and enemy_manager_singleton != self:
+		push_warning("EnemyManager: 重复注册全局单例，将覆盖为当前节点")
+	enemy_manager_singleton = self
+
+
+## 离开场景树时注销单例
+func _exit_tree() -> void:
+	if enemy_manager_singleton == self:
+		enemy_manager_singleton = null
 
 
 ## 初始化随机种子
