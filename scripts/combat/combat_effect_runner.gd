@@ -379,6 +379,11 @@ func _spawn_meteor_storm(
 	parent: Node,
 	cmd
 ) -> void:
+	# 中文：陨石表现层优先挂到 BattleUnits（启用 y_sort_enabled），使其与玩家/敌人按 Y 轴统一排序。
+	var spawn_parent: Node = parent
+	var battle_units: Node = parent.get_node_or_null("BattleUnits") as Node
+	if battle_units != null:
+		spawn_parent = battle_units
 	var scene: PackedScene = cmd.meteor_scene_override as PackedScene
 	if scene == null:
 		push_warning("CombatEffectRunner: METEOR_STORM 缺少 meteor_scene_override，已跳过本次发射")
@@ -417,7 +422,7 @@ func _spawn_meteor_storm(
 			int(cmd.meteor_polygon_fire_dps),
 			float(cmd.meteor_polygon_fire_tick_sec)
 		)
-		parent.call_deferred("add_child", meteor_node)
+		spawn_parent.call_deferred("add_child", meteor_node)
 
 
 ## 按命令配置采样陨石落点：可走随机敌人位置或随机点位，并在必要时回退补齐。

@@ -1,6 +1,6 @@
-# 在 Cursor 中运行与调试 Godot 项目
+# Godot 开发环境与 MCP
 
-本仓库为 **GDScript / Godot 4.6**，无 npm 等额外依赖；核心是 **Godot 编辑器可执行文件** + **Cursor 扩展** + **工作区配置**。
+本仓库为 **GDScript / Godot 4.6**，无 npm 等额外依赖；核心是 **Godot 编辑器可执行文件**、编辑器/IDE 扩展与 **Godot MCP Pro** 验证链路。Cursor 相关配置仍保留给使用 Cursor 的开发者；Codex 使用用户级 MCP 配置接入同一个 Godot MCP Pro 服务。
 
 ## 1. 已配置内容
 
@@ -38,16 +38,16 @@
 
 ## 6. 与本项目 MCP（Godot MCP Pro）
 
-`addons/godot_mcp` 为 **Godot MCP Pro** 编辑器插件：通过 WebSocket 把 **已打开的 Godot 4 编辑器** 接到 Cursor 的 MCP，供 AI 调用「改场景 / 读脚本 / **跑游戏并看画面**」等工具。**游戏发布包不得依赖 MCP**；仅用于开发与联调测试。
+`addons/godot_mcp` 为 **Godot MCP Pro** 编辑器插件：通过 WebSocket 把 **已打开的 Godot 4 编辑器** 接到 MCP 客户端，供 AI 调用「改场景 / 读脚本 / **跑游戏并看画面**」等工具。**游戏发布包不得依赖 MCP**；仅用于开发与联调测试。
 
 ### 6.1 使用前检查
 
 1. **本机 Godot 4.6+** 用「项目 → 打开」载入本仓库根目录（含 `project.godot`）。  
 2. **项目 → 项目设置 → 插件**：启用 **Godot MCP Pro**；底部 **MCP** 面板（或插件文档）会显示 **WebSocket 地址**（常见为 `ws://127.0.0.1:9080` 等，以你本机为准）。  
-3. **Cursor → Settings → MCP**：按插件官方说明添加对应 MCP 服务器（URL 与 Godot 面板一致）；保存后确认连接状态为已连接。  
+3. 在当前使用的 MCP 客户端中添加对应 MCP 服务器；Cursor 可通过 **Settings → MCP** 配置，Codex 可通过用户级 `config.toml` 的 `mcp_servers` 配置。保存后确认连接状态为已连接。  
 4. 在对话里让 Agent **先读 MCP 工具列表/描述再调用**，避免盲调参数。
 
-**Agent 在本机 Cursor 中调用 MCP 时的 `server` 标识**：一般为 **`user-godot-mcp-pro`**（与你在 `~/.cursor/mcp.json` 里配置的键名如 `godot-mcp-pro` 可能不同；以 Cursor 为当前工程生成的 MCP 描述为准）。若 `call_mcp_tool` 报「server does not exist」，请在 Cursor **MCP 面板**查看该 Godot 服务器在列表里的准确 ID。
+**Agent 调用 MCP 时的 server 标识**：以当前客户端暴露的工具命名为准。Cursor 中常见为 **`user-godot-mcp-pro`**；Codex 中通常暴露为 `godot-mcp-pro` 对应的工具命名空间。若报「server does not exist」或工具未出现，请先检查客户端 MCP 面板/配置与 Godot 插件连接状态。
 
 ### 6.2 推荐测试循环（与 `addons/godot_mcp/skills.zh.md` 一致）
 

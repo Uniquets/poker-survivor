@@ -114,12 +114,12 @@ effect_spec = SubResource("s3")
 
 [sub_resource type="Resource" id="e3_2"]
 script = ExtResource("2_ent")
-display_name = "对子三"
+display_name = "对子三（环火）"
 effect_spec = SubResource("s3")
 
 [sub_resource type="Resource" id="e3_3"]
 script = ExtResource("2_ent")
-display_name = "三条三"
+display_name = "三条三（二段爆炸）"
 effect_spec = SubResource("s3")
 
 [sub_resource type="Resource" id="e3_4"]

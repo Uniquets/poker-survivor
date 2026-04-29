@@ -25,6 +25,26 @@ static func resolve_projectile_volley_fire_sfx(
 	return cat.default_fire_sfx
 
 
+## 音效最终兜底：优先用传入值；为空时回退到全局 `PLAY_SHAPE_CATALOG` 默认音；仍为空则不播放。
+static func _resolve_final_shape_sfx(primary: AudioStream, kind: String) -> AudioStream:
+	if primary != null:
+		return primary
+	var cat: PlayShapeCatalog = GameConfig.PLAY_SHAPE_CATALOG as PlayShapeCatalog
+	if cat == null:
+		return null
+	match kind:
+		"fire":
+			return cat.default_fire_sfx
+		"hit_first":
+			return cat.default_hit_sfx_first
+		"hit_pierce":
+			return cat.default_hit_sfx_pierce
+		"hit_reroute":
+			return cat.default_hit_sfx_reroute
+		_:
+			return null
+
+
 ## 本步牌 **`CardResource.damage`** 求和（与旧 **`PlayEffectResolver._sum_card_damage`** 语义一致）
 static func _sum_cards_damage(cards: Array) -> int:
 	var t: int = 0
@@ -106,21 +126,25 @@ static func _handle_parallel_spec(
 	var cmd_use_shape_slots: bool = binding and proj_scene == null
 	if fire_stream == null:
 		fire_stream = resolve_projectile_volley_fire_sfx(cmd_use_shape_slots, use_default_fire)
+	fire_stream = _resolve_final_shape_sfx(fire_stream, "fire")
 	var hit_first: AudioStream = spec.get("hit_sfx_first") as AudioStream
 	if hit_first == null and fb_parallel != null:
 		hit_first = fb_parallel.get("hit_sfx_first") as AudioStream
 	if hit_first == null and default_catalog != null:
 		hit_first = default_catalog.get("default_hit_sfx_first") as AudioStream
+	hit_first = _resolve_final_shape_sfx(hit_first, "hit_first")
 	var hit_pierce: AudioStream = spec.get("hit_sfx_pierce") as AudioStream
 	if hit_pierce == null and fb_parallel != null:
 		hit_pierce = fb_parallel.get("hit_sfx_pierce") as AudioStream
 	if hit_pierce == null and default_catalog != null:
 		hit_pierce = default_catalog.get("default_hit_sfx_pierce") as AudioStream
+	hit_pierce = _resolve_final_shape_sfx(hit_pierce, "hit_pierce")
 	var hit_reroute: AudioStream = spec.get("hit_sfx_reroute") as AudioStream
 	if hit_reroute == null and fb_parallel != null:
 		hit_reroute = fb_parallel.get("hit_sfx_reroute") as AudioStream
 	if hit_reroute == null and default_catalog != null:
 		hit_reroute = default_catalog.get("default_hit_sfx_reroute") as AudioStream
+	hit_reroute = _resolve_final_shape_sfx(hit_reroute, "hit_reroute")
 	var lock_r: float = float(spec.get("lock_query_radius"))
 	if lock_r <= 0.0 and fb_parallel != null:
 		lock_r = float(fb_parallel.get("lock_query_radius"))
@@ -164,21 +188,25 @@ static func _handle_waypoint_spec(
 		wp_fire = default_catalog.get("default_fire_sfx") as AudioStream
 	if wp_fire == null:
 		wp_fire = resolve_projectile_volley_fire_sfx(true, false)
+	wp_fire = _resolve_final_shape_sfx(wp_fire, "fire")
 	var wp_hit_first: AudioStream = spec.get("hit_sfx_first") as AudioStream
 	if wp_hit_first == null and fb_waypoint != null:
 		wp_hit_first = fb_waypoint.get("hit_sfx_first") as AudioStream
 	if wp_hit_first == null and default_catalog != null:
 		wp_hit_first = default_catalog.get("default_hit_sfx_first") as AudioStream
+	wp_hit_first = _resolve_final_shape_sfx(wp_hit_first, "hit_first")
 	var wp_hit_pierce: AudioStream = spec.get("hit_sfx_pierce") as AudioStream
 	if wp_hit_pierce == null and fb_waypoint != null:
 		wp_hit_pierce = fb_waypoint.get("hit_sfx_pierce") as AudioStream
 	if wp_hit_pierce == null and default_catalog != null:
 		wp_hit_pierce = default_catalog.get("default_hit_sfx_pierce") as AudioStream
+	wp_hit_pierce = _resolve_final_shape_sfx(wp_hit_pierce, "hit_pierce")
 	var wp_hit_reroute: AudioStream = spec.get("hit_sfx_reroute") as AudioStream
 	if wp_hit_reroute == null and fb_waypoint != null:
 		wp_hit_reroute = fb_waypoint.get("hit_sfx_reroute") as AudioStream
 	if wp_hit_reroute == null and default_catalog != null:
 		wp_hit_reroute = default_catalog.get("default_hit_sfx_reroute") as AudioStream
+	wp_hit_reroute = _resolve_final_shape_sfx(wp_hit_reroute, "hit_reroute")
 	var wp_max_concurrent: int = int(spec.get("max_concurrent_in_radius"))
 	if wp_max_concurrent <= 0 and fb_waypoint != null:
 		wp_max_concurrent = int(fb_waypoint.get("max_concurrent_in_radius"))
@@ -253,14 +281,16 @@ static func _handle_meteor_storm_spec(
 		polygon_fire_tick = float(spec.get("triangle_fire_tick_interval_sec"))
 		lifetime_bonus_sec = float(spec.get("meteor_lifetime_bonus_four_sec"))
 	elif n == 3:
+		# 中文：按需求交换分档：三张 3 使用原「对子 3」的缩放 + 二段爆炸。
+		scale_mul = float(spec.get("meteor_scale_mul_pair"))
+		enable_end_explosion = bool(spec.get("enable_end_explosion_pair"))
+		end_explosion_damage = int(spec.get("end_explosion_damage_pair"))
+	elif n == 2:
+		# 中文：按需求交换分档：两张 3 使用原「三条 3」的椭圆火焰与时长加成。
 		enable_ellipse_fire = bool(spec.get("enable_ring_fire_triple"))
 		ellipse_fire_dps = int(spec.get("ring_fire_dot_dps"))
 		ellipse_fire_tick = float(spec.get("ring_fire_tick_interval_sec"))
 		lifetime_bonus_sec = float(spec.get("meteor_lifetime_bonus_triple_sec"))
-	elif n == 2:
-		scale_mul = float(spec.get("meteor_scale_mul_pair"))
-		enable_end_explosion = bool(spec.get("enable_end_explosion_pair"))
-		end_explosion_damage = int(spec.get("end_explosion_damage_pair"))
 	var c = _CmdScript.new()
 	c.kind = _CMD_METEOR_STORM
 	c.phase = _CmdScript.PHASE_PRESENTATIONAL

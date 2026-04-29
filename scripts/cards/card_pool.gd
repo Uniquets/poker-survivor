@@ -37,7 +37,7 @@ func _apply_default_damage(card: CardResource) -> void:
 	var base: int = card.get_rank_value() - 1
 	if card.suit == 1:
 		card.damage = base + 2
-	else:
+	else: 
 		card.damage = base
 
 
