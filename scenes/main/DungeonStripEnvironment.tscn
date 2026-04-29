@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://hfnulikio1lu"]
+
+[ext_resource type="Script" uid="uid://bghcwytxgf345" path="res://scripts/combat/dungeon_strip_environment.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://d2v26bbn712if" path="res://assets/sprites/scene/地牢场景2.png" id="2_tex"]
+
+[node name="DungeonStripEnvironment" type="Node2D" unique_id=2032672015]
+script = ExtResource("1_script")
+
+[node name="DefaultStripPreview" type="Sprite2D" parent="." unique_id=801813221]
+editor_description = "编辑器参考：单块条图（与根导出 dungeon_texture 一致）。运行时被脚本隐藏；调上下界时以此为背景。"
+z_index = -75
+z_as_relative = false
+texture = ExtResource("2_tex")
+centered = false
+
+[node name="TopWalkableEdge" type="Marker2D" parent="." unique_id=1748972509]
+editor_description = "可走区上界（内侧）：与条图对齐后上下拖动。顶墙碰撞下沿对齐此 Y。"
+z_index = 40
+z_as_relative = false
+position = Vector2(568, 242)
+gizmo_extents = 0.0
+
+[node name="BottomWalkableEdge" type="Marker2D" parent="." unique_id=1142290850]
+editor_description = "可走区下界（内侧）：底墙碰撞上沿对齐此 Y。"
+z_index = 40
+z_as_relative = false
+position = Vector2(0, 1220)
+gizmo_extents = 0.0

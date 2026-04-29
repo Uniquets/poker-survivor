@@ -1,10 +1,10 @@
 extends Node2D
 ## 点数 8 管线专用投射物：与点数 2 所用 `Projectile.tscn` 分离；红色闪烁。传入非零 `flight_direction` 时沿该向**直线**飞行并扫敌近距引爆；为零向量时退回追击 `target` 的旧逻辑
 
-const _ExplosionScript = preload("res://scripts/combat/explosion_one_shot.gd")
+const _ExplosionOneShotScene: PackedScene = preload("res://scenes/combat/ExplosionOneShot.tscn")
 const _BurnZoneScript = preload("res://scripts/combat/burning_ground_zone.gd")
 
-## 飞行速度（像素/秒）；通常由外部写入为 `CombatTuning.RANK_EIGHT_PAYLOAD_SPEED`
+## 飞行速度（像素/秒）；通常由 **`CombatEffectRunner`** 从 **`GameConfig.COMBAT_MECHANICS.explosive_payload_speed`** 注入
 var _speed: float = 680.0
 ## 超时（秒）后仍在当前位置引爆，避免永远悬挂
 var _travel_timeout_seconds: float = 2.5
@@ -33,6 +33,15 @@ var _burn_dps: int = 0
 var _detonated: bool = false
 ## 已飞行时间（秒）
 var _travel_time: float = 0.0
+
+
+## 追击目标用世界点：**`CombatEnemy`** 用 **`Hurtbox`** 锚点，其余用节点原点
+func _aim_point_for_target(t: Node2D) -> Vector2:
+	if t == null or not is_instance_valid(t):
+		return Vector2.ZERO
+	if t is CombatEnemy:
+		return (t as CombatEnemy).get_hurtbox_anchor_global()
+	return t.global_position
 ## 闪烁相位（弧度累加）
 var _flash_phase: float = 0.0
 
@@ -88,10 +97,11 @@ func _process(delta: float) -> void:
 		return
 
 	_travel_time += delta
-	var to_t: Vector2 = _target.global_position - global_position
+	var aim: Vector2 = _aim_point_for_target(_target)
+	var to_t: Vector2 = aim - global_position
 	var dist: float = to_t.length()
 	if dist < 26.0 or _travel_time > _travel_timeout_seconds:
-		var hit_pos: Vector2 = _target.global_position if dist < 40.0 else global_position
+		var hit_pos: Vector2 = aim if dist < 40.0 else global_position
 		_detonate_at(hit_pos)
 		return
 
@@ -115,11 +125,11 @@ func _try_hit_any_enemy() -> bool:
 	if _enemy_manager == null:
 		return false
 	var r2: float = _hit_radius * _hit_radius
-	for child in _enemy_manager.get_children():
+	for child in _enemy_manager.get_units_root().get_children():
 		var e := child as CombatEnemy
 		if e == null or e.is_dead():
 			continue
-		if global_position.distance_squared_to(e.global_position) <= r2:
+		if global_position.distance_squared_to(e.get_hurtbox_anchor_global()) <= r2:
 			return true
 	return false
 
@@ -132,18 +142,17 @@ func _detonate_at(pos: Vector2) -> void:
 	set_process(false)
 
 	if is_instance_valid(_fx_parent) and is_instance_valid(_enemy_manager):
-		var ex := Node2D.new()
+		var ex := _ExplosionOneShotScene.instantiate()
 		ex.global_position = pos
-		ex.set_script(_ExplosionScript)
-		ex.setup(_enemy_manager, _explosion_damage, _explosion_radius)
-		_fx_parent.add_child(ex)
+		ex.setup(_enemy_manager, _explosion_damage, _explosion_radius, _fx_parent)
+		_fx_parent.call_deferred("add_child", ex)
 
 		if _spawn_burn_after and _burn_zone_radius > 1.0 and _burn_seconds > 0.05:
 			var zone := Node2D.new()
 			zone.global_position = pos
 			zone.set_script(_BurnZoneScript)
 			zone.setup(_enemy_manager, _burn_zone_radius, _burn_seconds, _burn_dps)
-			_fx_parent.add_child(zone)
+			_fx_parent.call_deferred("add_child", zone)
 
 	queue_free()
 

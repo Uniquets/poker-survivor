@@ -13,7 +13,7 @@ class_name CardResource
 ## 卡牌描述文案
 @export var description: String = ""
 
-## 卡面正面纹理
+## 卡面正面纹理（通常由 `CardPool` 按 `CardFaceConfig` 与稀有度档写入）
 @export var front_texture: Texture2D
 ## 卡背纹理
 @export var back_texture: Texture2D

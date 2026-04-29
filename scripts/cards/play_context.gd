@@ -10,5 +10,9 @@ var group_type: GameRules.GroupType = GameRules.GroupType.NONE
 var global_suit_counts: Array = [0, 0, 0, 0]
 ## 玩家最大生命（用于按百分比治疗等逻辑相计算）
 var player_max_health: int = 100
+## 本步 **`PlayerCombatStats` 快照**（只读）；由 `AutoAttackSystem` 在 `resolve` 前 `duplicate_snapshot()` 填入，供伤害/范围/暴击/枚数修饰
+var player_stats = null
+## 本步玩家节点 **`CombatPlayer.attack_damage_coefficient`** 快照（解析阶段与 **`player_stats.damage_multiplier`**、暴击连乘；**`<0`** 按 **`0`**）
+var player_attack_damage_coefficient: float = 1.0
 ## 本步全局强化快照（弹道 +N 等）；由 `AutoAttackSystem` 在调用 `PlayEffectResolver.resolve` 前填入，缺省为 null 表示无加成
 var augment_snapshot = null

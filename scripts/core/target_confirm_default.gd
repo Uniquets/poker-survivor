@@ -56,7 +56,7 @@ func resolve(
 	match scheme:
 		TargetConfirmScheme.CASTER_ANCHOR_ONLY: # 仅锚点，无敌人，anchor 为施法者位置（若有），返回空目标列表
 			if player != null:
-				anchor = player.global_position
+				anchor = player.get_attack_anchor_global()
 			return TargetConfirmResult.create(true, null, [], anchor, 0.0, int(scheme))
 		TargetConfirmScheme.NEAREST_FROM_POINT: # 最近敌人，忽略半径，仅取 anchor 附近最近一个
 			primary = _nearest_hostile(anchor)
@@ -101,11 +101,11 @@ func _hostiles_in_radius(center: Vector2, radius: float) -> Array:
 	if enemy_manager == null or radius <= 0.0:
 		return out
 	var r2: float = radius * radius
-	for child in enemy_manager.get_children():
+	for child in enemy_manager.get_units_root().get_children():
 		var e := child as CombatEnemy
 		if e == null or e.is_dead():
 			continue
-		if center.distance_squared_to(e.global_position) <= r2:
+		if center.distance_squared_to(e.get_hurtbox_anchor_global()) <= r2:
 			out.append(e)
 	return out
 
@@ -118,11 +118,11 @@ func _nearest_hostile(from_world: Vector2) -> CombatEnemy:
 		return null # 敌人管理器无效，直接返回 null
 	var nearest: CombatEnemy = null # 当前最近敌人
 	var best: float = INF # 当前最近距离平方（初始为无穷大，便于首次比较）
-	for child in enemy_manager.get_children():
+	for child in enemy_manager.get_units_root().get_children():
 		var e := child as CombatEnemy
 		if e == null or e.is_dead():
 			continue # 非敌人或已死亡，跳过
-		var d2: float = from_world.distance_squared_to(e.global_position) # 计算与锚点的距离平方
+		var d2: float = from_world.distance_squared_to(e.get_hurtbox_anchor_global())
 		if d2 < best:
 			best = d2 # 若更近则更新最优距离与最近敌人
 			nearest = e
@@ -137,7 +137,7 @@ func _nearest_in_list(hostiles: Array, from_world: Vector2) -> CombatEnemy:
 		var e := item as CombatEnemy
 		if e == null or e.is_dead():
 			continue
-		var d2: float = from_world.distance_squared_to(e.global_position)
+		var d2: float = from_world.distance_squared_to(e.get_hurtbox_anchor_global())
 		if d2 < best_d2:
 			best_d2 = d2
 			best_e = e

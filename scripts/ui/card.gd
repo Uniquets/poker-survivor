@@ -12,10 +12,12 @@ const SUITS = ["♠", "♥", "♦", "♣"]
 ## 点数显示文本顺序 A-K
 const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 
-@onready var front_texture_rect: TextureRect = $Front
+## 正面整体容器（底图与角标；翻面时整层隐藏）
+@onready var front_face_root: Control = $Front
+## 正面底图（场景中挂在 `Front` 下，路径须与场景一致）
+@onready var front_texture_rect: TextureRect = $Front/CardFront
 @onready var back_texture_rect: TextureRect = $Back
 
-@onready var center_suit_label: Label = $Front/CenterSuit
 @onready var suit1_label: Label = $Front/Suit1
 @onready var num1_label: Label = $Front/Num1
 @onready var suit2_label: Label = $Front/Suit2
@@ -54,10 +56,11 @@ func set_face_up(face_up: bool) -> void:
 
 ## 根据 card_data 更新纹理与角标文字
 func update_display() -> void:
-	if front_texture_rect == null or back_texture_rect == null:
+	if front_face_root == null or front_texture_rect == null or back_texture_rect == null:
 		return
 	
-	front_texture_rect.visible = is_face_up
+	# 中文：整层 Front 切换可见性，避免仅隐藏 TextureRect 时角标仍叠在牌背上
+	front_face_root.visible = is_face_up
 	back_texture_rect.visible = !is_face_up
 	
 	if card_data != null:
@@ -69,7 +72,7 @@ func update_display() -> void:
 		_update_card_text()
 
 
-## 写入四角与中心花色/点数标签
+## 写入四角花色/点数标签（红桃/方块与黑桃/梅花同色；勿在场景里给点数 Label 挂固定色的 `LabelSettings`，否则会盖住 `font_color` 覆盖）
 func _update_card_text() -> void:
 	if card_data == null:
 		return
@@ -79,12 +82,8 @@ func _update_card_text() -> void:
 	
 	var suit_char = SUITS[suit] if suit >= 0 and suit < SUITS.size() else "?"
 	var rank_char = RANKS[rank - 1] if rank >= 1 and rank <= 13 else "?"
-	
-	var suit_color = Color(1, 0, 0) if suit == 1 or suit == 2 else Color(0, 0, 0)
-	
-	if center_suit_label != null:
-		center_suit_label.text = suit_char
-		center_suit_label.add_theme_color_override("font_color", suit_color)
+	# 中文：与标准扑克一致，红心/方块红，黑桃/梅花黑；四角统一用同一色
+	var suit_color := Color(1, 0, 0) if suit == 1 or suit == 2 else Color(0, 0, 0)
 	
 	if suit1_label != null:
 		suit1_label.text = suit_char

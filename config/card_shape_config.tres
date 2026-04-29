@@ -1,0 +1,185 @@
+[gd_resource type="Resource" script_class="PlayShapeCatalog" format=3 uid="uid://xggbtejisffd"]
+
+[ext_resource type="Script" uid="uid://cnhtbphlw27q" path="res://scripts/cards/play_shape_catalog.gd" id="1_cat"]
+[ext_resource type="Script" uid="uid://d34rmcdmi5iu8" path="res://scripts/cards/play_shape_entry.gd" id="2_ent"]
+[ext_resource type="Script" uid="uid://bg0b8fmioncqi" path="res://scripts/cards/shape_parallel_volley_effect_spec.gd" id="3_par"]
+[ext_resource type="Script" uid="uid://bg0b8mmponcqi" path="res://scripts/cards/shape_waypoint_volley_effect_spec.gd" id="4_way"]
+[ext_resource type="Script" uid="uid://4uyq0artrihf" path="res://scripts/cards/shape_explosive_volley_effect_spec.gd" id="5_e8"]
+[ext_resource type="Script" uid="uid://bk7mba5hs1dq1" path="res://scripts/cards/shape_heal_invuln_effect_spec.gd" id="6_hi"]
+[ext_resource type="PackedScene" uid="uid://be2x8w2rlimb5" path="res://scenes/combat/ParallelStraightCardProjectile.tscn" id="7_def_card_proj"]
+[ext_resource type="PackedScene" uid="uid://by0drq4ef0q10" path="res://scenes/combat/WaypointArenaCardProjectile.tscn" id="8_def_wp"]
+[ext_resource type="AudioStream" uid="uid://exsvia1q1us4" path="res://assets/audio/8-16_Sound_Effects_Pack/03.damage/damage_1.wav" id="9_hit_default"]
+[ext_resource type="Script" uid="uid://2m6xoe2n6jwt" path="res://scripts/cards/shape_meteor_storm_effect_spec.gd" id="10_meteor_spec"]
+[ext_resource type="PackedScene" uid="uid://cmxbrmye3yek1" path="res://scenes/combat/MeteorStrike.tscn" id="11_meteor_scene"]
+
+[sub_resource type="Resource" id="h10_1"]
+script = ExtResource("6_hi")
+
+[sub_resource type="Resource" id="e10_1"]
+script = ExtResource("2_ent")
+display_name = "单张十"
+effect_spec = SubResource("h10_1")
+
+[sub_resource type="Resource" id="h10_2"]
+script = ExtResource("6_hi")
+heal_ratio = 0.3
+
+[sub_resource type="Resource" id="e10_2"]
+script = ExtResource("2_ent")
+display_name = "对子十"
+effect_spec = SubResource("h10_2")
+
+[sub_resource type="Resource" id="h10_3"]
+script = ExtResource("6_hi")
+heal_ratio = 0.5
+invulnerable_seconds = 2.0
+
+[sub_resource type="Resource" id="e10_3"]
+script = ExtResource("2_ent")
+display_name = "三条十"
+effect_spec = SubResource("h10_3")
+
+[sub_resource type="Resource" id="h10_4"]
+script = ExtResource("6_hi")
+heal_ratio = 1.0
+invulnerable_seconds = 5.0
+
+[sub_resource type="Resource" id="e10_4"]
+script = ExtResource("2_ent")
+display_name = "四条十"
+effect_spec = SubResource("h10_4")
+
+[sub_resource type="Resource" id="sp1"]
+script = ExtResource("3_par")
+
+[sub_resource type="Resource" id="e1"]
+script = ExtResource("2_ent")
+display_name = "单张二"
+effect_spec = SubResource("sp1")
+
+[sub_resource type="Resource" id="sp2"]
+script = ExtResource("3_par")
+volley_count = 4
+spread_deg = 7.5
+
+[sub_resource type="Resource" id="e2"]
+script = ExtResource("2_ent")
+display_name = "对子二"
+effect_spec = SubResource("sp2")
+
+[sub_resource type="Resource" id="sp3"]
+script = ExtResource("3_par")
+volley_count = 10
+damage_per_hit = 10
+spread_deg = 9.0
+extra_hit_budget_per_shot = 2
+
+[sub_resource type="Resource" id="e3"]
+script = ExtResource("2_ent")
+display_name = "三条二"
+effect_spec = SubResource("sp3")
+
+[sub_resource type="Resource" id="sp4"]
+script = ExtResource("4_way")
+max_concurrent_in_radius = 40
+batch_refresh_sec = 2.0
+waypoint_projectile_scene = ExtResource("8_def_wp")
+
+[sub_resource type="Resource" id="e4"]
+script = ExtResource("2_ent")
+display_name = "四条二"
+effect_spec = SubResource("sp4")
+
+[sub_resource type="Resource" id="s3"]
+script = ExtResource("10_meteor_spec")
+meteor_scene = ExtResource("11_meteor_scene")
+fall_duration_sec = 0.65
+impact_damage = 26
+sample_from_random_enemy = true
+limit_point_distance = false
+point_min_distance = 160.0
+point_max_distance = 520.0
+sample_max_attempts = 96
+meteor_scale_mul_pair = 1.4
+end_explosion_damage_pair = 34
+meteor_lifetime_bonus_triple_sec = 1.2
+ring_fire_dot_dps = 18
+meteor_lifetime_bonus_four_sec = 2.0
+triangle_fire_dot_dps = 24
+
+[sub_resource type="Resource" id="e3_1"]
+script = ExtResource("2_ent")
+display_name = "单张三"
+effect_spec = SubResource("s3")
+
+[sub_resource type="Resource" id="e3_2"]
+script = ExtResource("2_ent")
+display_name = "对子三"
+effect_spec = SubResource("s3")
+
+[sub_resource type="Resource" id="e3_3"]
+script = ExtResource("2_ent")
+display_name = "三条三"
+effect_spec = SubResource("s3")
+
+[sub_resource type="Resource" id="e3_4"]
+script = ExtResource("2_ent")
+display_name = "四条三"
+effect_spec = SubResource("s3")
+
+[sub_resource type="Resource" id="s8"]
+script = ExtResource("5_e8")
+
+[sub_resource type="Resource" id="e8_1"]
+script = ExtResource("2_ent")
+display_name = "单张八"
+effect_spec = SubResource("s8")
+
+[sub_resource type="Resource" id="e8_2"]
+script = ExtResource("2_ent")
+display_name = "对子八"
+effect_spec = SubResource("s8")
+
+[sub_resource type="Resource" id="e8_3"]
+script = ExtResource("2_ent")
+display_name = "三条八"
+effect_spec = SubResource("s8")
+
+[sub_resource type="Resource" id="e8_4"]
+script = ExtResource("2_ent")
+display_name = "四条八"
+effect_spec = SubResource("s8")
+
+[sub_resource type="Resource" id="sp_default"]
+script = ExtResource("3_par")
+binding_card_shape_presentation = false
+
+[sub_resource type="Resource" id="e_default"]
+script = ExtResource("2_ent")
+display_name = "默认回落"
+effect_spec = SubResource("sp_default")
+
+[resource]
+script = ExtResource("1_cat")
+shape_dic = {
+"10": SubResource("e10_1"),
+"1010": SubResource("e10_2"),
+"101010": SubResource("e10_3"),
+"10101010": SubResource("e10_4"),
+"2": SubResource("e1"),
+"22": SubResource("e2"),
+"222": SubResource("e3"),
+"2222": SubResource("e4"),
+"3": SubResource("e3_1"),
+"33": SubResource("e3_2"),
+"333": SubResource("e3_3"),
+"3333": SubResource("e3_4"),
+"8": SubResource("e8_1"),
+"88": SubResource("e8_2"),
+"888": SubResource("e8_3"),
+"8888": SubResource("e8_4"),
+"DEFAULT": SubResource("e_default")
+}
+default_projectile_scene = ExtResource("7_def_card_proj")
+default_hit_sfx_first = ExtResource("9_hit_default")
+default_hit_sfx_pierce = ExtResource("9_hit_default")

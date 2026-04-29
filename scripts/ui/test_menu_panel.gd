@@ -9,9 +9,12 @@ signal sort_requested()
 signal add_custom_requested(suit: int, rank: int)
 ## 请求关闭菜单（不发起子流程时由 RunScene 解除暂停）
 signal close_requested()
+## 测试「疯狂模式」勾选变化（由 RunScene 写入 **`EnemyManager.test_crazy_kill_respawn_enabled`**）
+signal crazy_mode_changed(enabled: bool)
 
-@onready var _btn_pool: Button = $Center/Panel/VBox/BtnAddPool
-@onready var _btn_sort: Button = $Center/Panel/VBox/BtnSort
+@onready var _crazy_check: CheckBox = $Center/Panel/VBox/RowCrazy/CrazyModeCheck
+@onready var _btn_pool: Button = $Center/Panel/VBox/RowPoolSort/BtnAddPool
+@onready var _btn_sort: Button = $Center/Panel/VBox/RowPoolSort/BtnSort
 @onready var _suit_option: OptionButton = $Center/Panel/VBox/RowSuit/SuitOption
 @onready var _rank_option: OptionButton = $Center/Panel/VBox/RowRank/RankOption
 @onready var _btn_custom: Button = $Center/Panel/VBox/BtnAddCustom
@@ -28,6 +31,7 @@ func _ready() -> void:
 	_btn_sort.pressed.connect(func () -> void: emit_signal("sort_requested"))
 	_btn_custom.pressed.connect(_on_add_custom_pressed)
 	_btn_close.pressed.connect(func () -> void: emit_signal("close_requested"))
+	_crazy_check.toggled.connect(_on_crazy_mode_toggled)
 
 
 ## 写入四种花色显示名（下标 0–3 即 CardResource.suit）
@@ -56,9 +60,15 @@ func _on_add_custom_pressed() -> void:
 	emit_signal("add_custom_requested", suit_idx, rank_id)
 
 
-## 由 RunScene 调用：显示全屏菜单（不改变本节点 pause 行为，由场景树 paused 控制世界）
-func show_menu() -> void:
+## 疯狂模式勾选：转发给 RunScene 同步 **`EnemyManager`**
+func _on_crazy_mode_toggled(pressed: bool) -> void:
+	emit_signal("crazy_mode_changed", pressed)
+
+
+## 由 RunScene 调用：显示全屏菜单（不改变本节点 pause 行为，由场景树 paused 控制世界）；**`crazy_mode_current`** 与 **`EnemyManager`** 勾选状态对齐
+func show_menu(crazy_mode_current: bool = false) -> void:
 	visible = true
+	_crazy_check.set_pressed_no_signal(crazy_mode_current)
 
 
 ## 由 RunScene 调用：隐藏菜单

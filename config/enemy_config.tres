@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyConfig" format=3 uid="uid://knsirfea8rmq"]
+
+[ext_resource type="Script" uid="uid://cbojxs43e45iy" path="res://scripts/core/enemy_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+max_alive = 300
+spawn_radius = 700.0
+max_health = 400
+chase_stop_distance_to_player = 10.0

@@ -228,3 +228,11 @@ func get_hand_size() -> int:
 ## 是否仍在「尚有未打出组且非装配等待」阶段
 func is_round_active() -> bool:
 	return not is_assembling and current_index < cards.size()
+
+
+## 洗牌/装配条：**本轮手牌最后一组打出后**等待 **`assembly_interval`** 期间的填充比例 **[0,1]**；非装配或手牌空为 **0**
+func get_shuffle_wait_fill_ratio() -> float:
+	if _cards.is_empty() or not is_assembling:
+		return 0.0
+	var denom: float = maxf(assembly_interval, 0.001)
+	return clampf(play_timer / denom, 0.0, 1.0)

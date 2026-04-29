@@ -17,12 +17,19 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+GlobalAudioManager="*res://scripts/core/global_audio_manager.gd"
 MCPScreenshot="*res://addons/godot_mcp/mcp_screenshot_service.gd"
 MCPInputService="*res://addons/godot_mcp/mcp_input_service.gd"
 MCPGameInspector="*res://addons/godot_mcp/mcp_game_inspector_service.gd"
 CardPool="*res://scripts/cards/card_pool.gd"
 GameToolSingleton="*res://scripts/core/game_tool_singleton.gd"
 ProjectileToolSingleton="*res://scripts/core/projectile_tool_singleton.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
 
 [editor_plugins]
 

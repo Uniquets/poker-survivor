@@ -1,28 +1,44 @@
 [gd_scene format=3 uid="uid://bk1234568aa0"]
 
 [ext_resource type="Script" uid="uid://dikcprqsjg6wx" path="res://scripts/ui/card.gd" id="1_card_script"]
-[ext_resource type="Texture2D" uid="uid://dfjcn6c10ffki" path="res://assets/sprites/card_hearts_3.svg" id="2_front_tex"]
+[ext_resource type="Texture2D" uid="uid://cqx6pkjd1nc2q" path="res://assets/sprites/card/empy_card_green.png" id="2_156y2"]
 [ext_resource type="Texture2D" uid="uid://c5nmow34ytsvr" path="res://assets/sprites/card_back.svg" id="3_back_tex"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_156y2"]
-font_color = Color(1, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_shadow"]
+bg_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.32)
+shadow_size = 5
+shadow_offset = Vector2(2, 3)
 
-[sub_resource type="LabelSettings" id="LabelSettings_oxnmu"]
-font_color = Color(1, 0, 0, 1)
-
-[node name="Card" type="ColorRect" unique_id=937810476]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+[node name="Card" type="ColorRect" unique_id=1470266083]
+custom_minimum_size = Vector2(160, 240)
+anchors_preset = -1
+anchor_right = 0.37600002
+anchor_bottom = 1.0
+offset_right = -561.92004
+offset_bottom = -840.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
+color = Color(1, 1, 1, 0)
 script = ExtResource("1_card_script")
 
-[node name="Front" type="TextureRect" parent="." unique_id=1603935836]
-mouse_filter = 1
+[node name="CardShadow" type="Panel" parent="." unique_id=1262840589]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_shadow")
+
+[node name="Back" type="TextureRect" parent="." unique_id=841204633]
+visible = false
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -30,102 +46,69 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_front_tex")
+mouse_filter = 2
+texture = ExtResource("3_back_tex")
+expand_mode = 1
 stretch_mode = 4
 
-[node name="CenterSuit" type="Label" parent="Front" unique_id=1]
-mouse_filter = 1
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -11.0
-offset_top = -11.5
-offset_right = 11.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 24
-text = "♦️"
-label_settings = SubResource("LabelSettings_156y2")
+[node name="Front" type="Control" parent="." unique_id=255308961]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
-[node name="Suit1" type="Label" parent="Front" unique_id=1476297467]
-mouse_filter = 1
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -40.0
-offset_top = -40.0
-offset_right = -1.0
-offset_bottom = -6.0
-grow_horizontal = 2
-grow_vertical = 2
-scale = Vector2(0.5, 0.5)
-theme_override_font_sizes/font_size = 24
-text = "♦️"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Num1" type="Label" parent="Front" unique_id=2]
-mouse_filter = 1
-layout_mode = 1
-offset_right = 24.760864
-offset_bottom = 23.0
-scale = Vector2(0.8, 0.8)
-theme_override_font_sizes/font_size = 24
-text = "3"
-label_settings = SubResource("LabelSettings_oxnmu")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Suit2" type="Label" parent="Front" unique_id=816127274]
-mouse_filter = 1
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 78.0
-offset_top = -13.0
-offset_right = 117.0
-offset_bottom = 21.0
-grow_vertical = 0
-rotation = 3.1415927
-scale = Vector2(0.5, 0.5)
-theme_override_font_sizes/font_size = 24
-text = "♦️"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Num2" type="Label" parent="Front" unique_id=958995160]
-mouse_filter = 1
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 77.99999
-offset_top = 1.0
-offset_right = 102.76086
-offset_bottom = 24.0
-grow_vertical = 0
-rotation = 3.1415927
-scale = Vector2(0.8, 0.8)
-theme_override_font_sizes/font_size = 24
-text = "3"
-label_settings = SubResource("LabelSettings_oxnmu")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Back" type="TextureRect" parent="." unique_id=487714632]
-mouse_filter = 1
-visible = false
+[node name="CardFront" type="TextureRect" parent="Front" unique_id=1331627303]
 texture_filter = 1
 layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-texture = ExtResource("3_back_tex")
-stretch_mode = 4
+offset_right = 160.0
+offset_bottom = 240.0
+mouse_filter = 2
+texture = ExtResource("2_156y2")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Suit1" type="Label" parent="Front" unique_id=684279190]
+layout_mode = 1
+offset_left = 13.0
+offset_top = 35.0
+offset_right = 39.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 15
+text = "♦️"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Num1" type="Label" parent="Front" unique_id=1113353604]
+layout_mode = 1
+offset_left = 14.0
+offset_top = 13.0
+offset_right = 37.0
+offset_bottom = 44.0
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 22
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Suit2" type="Label" parent="Front" unique_id=340773927]
+layout_mode = 0
+offset_left = 149.0
+offset_top = 206.0
+offset_right = 174.0
+offset_bottom = 234.0
+rotation = 3.1415927
+theme_override_font_sizes/font_size = 15
+text = "♦️"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Num2" type="Label" parent="Front" unique_id=2048715729]
+layout_mode = 0
+offset_left = 144.0
+offset_top = 227.0
+offset_right = 165.0
+offset_bottom = 258.0
+rotation = 3.1415927
+theme_override_font_sizes/font_size = 22
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1

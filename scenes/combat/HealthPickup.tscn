@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://ctnrxrrmsjpm0"]
+
+[ext_resource type="Script" uid="uid://ct0a8gfflmqdd" path="res://scripts/combat/battle_pickup.gd" id="1_bp"]
+
+[node name="HealthPickup" type="Node2D" unique_id=981773054]
+script = ExtResource("1_bp")
+pickup_kind = 2
+
+[node name="IconSprite" type="Sprite2D" parent="." unique_id=1155880977]
+visible = false
+position = Vector2(0, -4)
+
+[node name="IconLabel" type="Label" parent="." unique_id=490663352]
+offset_left = -18.0
+offset_top = -18.0
+offset_right = 18.0
+offset_bottom = 18.0
+theme_override_font_sizes/font_size = 28
+text = "❤️"
+horizontal_alignment = 1
+vertical_alignment = 1

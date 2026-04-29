@@ -1,6 +1,6 @@
 extends RefCounted
 class_name GameRules
-## 玩法常量与枚举（与 RULES 文档对齐；`RefCounted` + `class_name` 便于全项目静态访问，非场景节点）
+## 玩法常量与枚举（与 `docs/详细设计.md` 及本类注释对齐；`RefCounted` + `class_name` 便于全项目静态访问，非场景节点）
 
 const INITIAL_HAND_SIZE: int = 3 ## 默认初始手牌张数
 const BASE_PLAY_INTERVAL: float = 0.5 ## 默认出牌间隔（秒）

@@ -1,0 +1,541 @@
+[
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck1.tscn",
+	"node": "speck1",
+	"region_rect": [
+	  2218,
+	  138,
+	  23,
+	  26
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck2.tscn",
+	"node": "speck2",
+	"region_rect": [
+	  2241,
+	  165,
+	  17,
+	  34
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck3.tscn",
+	"node": "speck3",
+	"region_rect": [
+	  2511,
+	  181,
+	  18,
+	  18
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/weed1.tscn",
+	"node": "weed1",
+	"region_rect": [
+	  2147,
+	  59,
+	  580,
+	  445
+	],
+	"class": "weed"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/cactus1.tscn",
+	"node": "cactus1",
+	"region_rect": [
+	  1520,
+	  65,
+	  368,
+	  463
+	],
+	"class": "cactus"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/skeleton1.tscn",
+	"node": "skeleton1",
+	"region_rect": [
+	  956,
+	  165,
+	  340,
+	  345
+	],
+	"class": "skeleton"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/bone1.tscn",
+	"node": "bone1",
+	"region_rect": [
+	  111,
+	  136,
+	  723,
+	  434
+	],
+	"class": "bone"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck4.tscn",
+	"node": "speck4",
+	"region_rect": [
+	  2295,
+	  428,
+	  22,
+	  12
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/bird1.tscn",
+	"node": "bird1",
+	"region_rect": [
+	  2225,
+	  592,
+	  215,
+	  188
+	],
+	"class": "bird"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/weed2.tscn",
+	"node": "weed2",
+	"region_rect": [
+	  2539,
+	  622,
+	  199,
+	  153
+	],
+	"class": "weed"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/bird2.tscn",
+	"node": "bird2",
+	"region_rect": [
+	  934,
+	  633,
+	  228,
+	  176
+	],
+	"class": "bird"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/skull1.tscn",
+	"node": "skull1",
+	"region_rect": [
+	  112,
+	  668,
+	  204,
+	  235
+	],
+	"class": "skull"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/beast1.tscn",
+	"node": "beast1",
+	"region_rect": [
+	  1947,
+	  592,
+	  201,
+	  440
+	],
+	"class": "beast"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/bush1.tscn",
+	"node": "bush1",
+	"region_rect": [
+	  1496,
+	  616,
+	  294,
+	  416
+	],
+	"class": "bush"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/rabbit1.tscn",
+	"node": "rabbit1",
+	"region_rect": [
+	  458,
+	  715,
+	  205,
+	  229
+	],
+	"class": "rabbit"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/bush2.tscn",
+	"node": "bush2",
+	"region_rect": [
+	  317,
+	  839,
+	  148,
+	  94
+	],
+	"class": "bush"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/lizard1.tscn",
+	"node": "lizard1",
+	"region_rect": [
+	  1848,
+	  756,
+	  53,
+	  276
+	],
+	"class": "lizard"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck5.tscn",
+	"node": "speck5",
+	"region_rect": [
+	  439,
+	  874,
+	  71,
+	  76
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/barrel1.tscn",
+	"node": "barrel1",
+	"region_rect": [
+	  2512,
+	  839,
+	  226,
+	  193
+	],
+	"class": "barrel"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/barrel2.tscn",
+	"node": "barrel2",
+	"region_rect": [
+	  2206,
+	  844,
+	  240,
+	  193
+	],
+	"class": "barrel"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/bush3.tscn",
+	"node": "bush3",
+	"region_rect": [
+	  916,
+	  874,
+	  322,
+	  170
+	],
+	"class": "bush"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/twig1.tscn",
+	"node": "twig1",
+	"region_rect": [
+	  387,
+	  933,
+	  182,
+	  59
+	],
+	"class": "twig"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/grass1.tscn",
+	"node": "grass1",
+	"region_rect": [
+	  1905,
+	  1149,
+	  125,
+	  71
+	],
+	"class": "grass"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft1.tscn",
+	"node": "tuft1",
+	"region_rect": [
+	  1316,
+	  1131,
+	  180,
+	  119
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck6.tscn",
+	"node": "speck6",
+	"region_rect": [
+	  1660,
+	  1173,
+	  41,
+	  35
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft2.tscn",
+	"node": "tuft2",
+	"region_rect": [
+	  703,
+	  1130,
+	  131,
+	  125
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/grass2.tscn",
+	"node": "grass2",
+	"region_rect": [
+	  1772,
+	  1178,
+	  70,
+	  48
+	],
+	"class": "grass"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/grass3.tscn",
+	"node": "grass3",
+	"region_rect": [
+	  909,
+	  1149,
+	  124,
+	  112
+	],
+	"class": "grass"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/grass4.tscn",
+	"node": "grass4",
+	"region_rect": [
+	  1137,
+	  1161,
+	  90,
+	  89
+	],
+	"class": "grass"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/rock1.tscn",
+	"node": "rock1",
+	"region_rect": [
+	  88,
+	  1172,
+	  165,
+	  83
+	],
+	"class": "rock"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/grass5.tscn",
+	"node": "grass5",
+	"region_rect": [
+	  2229,
+	  1167,
+	  106,
+	  117
+	],
+	"class": "grass"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft3.tscn",
+	"node": "tuft3",
+	"region_rect": [
+	  2405,
+	  1161,
+	  317,
+	  139
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck7.tscn",
+	"node": "speck7",
+	"region_rect": [
+	  287,
+	  1231,
+	  49,
+	  42
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck8.tscn",
+	"node": "speck8",
+	"region_rect": [
+	  376,
+	  1244,
+	  52,
+	  34
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/rock2.tscn",
+	"node": "rock2",
+	"region_rect": [
+	  1682,
+	  1238,
+	  85,
+	  64
+	],
+	"class": "rock"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck9.tscn",
+	"node": "speck9",
+	"region_rect": [
+	  1854,
+	  1261,
+	  41,
+	  41
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/rock3.tscn",
+	"node": "rock3",
+	"region_rect": [
+	  1977,
+	  1257,
+	  70,
+	  53
+	],
+	"class": "rock"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck10.tscn",
+	"node": "speck10",
+	"region_rect": [
+	  446,
+	  1278,
+	  41,
+	  36
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck11.tscn",
+	"node": "speck11",
+	"region_rect": [
+	  164,
+	  1278,
+	  53,
+	  70
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck12.tscn",
+	"node": "speck12",
+	"region_rect": [
+	  343,
+	  1314,
+	  60,
+	  58
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/rock4.tscn",
+	"node": "rock4",
+	"region_rect": [
+	  2493,
+	  1337,
+	  194,
+	  89
+	],
+	"class": "rock"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft4.tscn",
+	"node": "tuft4",
+	"region_rect": [
+	  1321,
+	  1301,
+	  170,
+	  164
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft5.tscn",
+	"node": "tuft5",
+	"region_rect": [
+	  1103,
+	  1318,
+	  159,
+	  131
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft6.tscn",
+	"node": "tuft6",
+	"region_rect": [
+	  676,
+	  1314,
+	  175,
+	  141
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft7.tscn",
+	"node": "tuft7",
+	"region_rect": [
+	  904,
+	  1326,
+	  129,
+	  128
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/rock5.tscn",
+	"node": "rock5",
+	"region_rect": [
+	  432,
+	  1366,
+	  102,
+	  58
+	],
+	"class": "rock"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft8.tscn",
+	"node": "tuft8",
+	"region_rect": [
+	  2147,
+	  1350,
+	  282,
+	  98
+	],
+	"class": "tuft"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/speck13.tscn",
+	"node": "speck13",
+	"region_rect": [
+	  276,
+	  1376,
+	  59,
+	  49
+	],
+	"class": "speck"
+  },
+  {
+	"scene": "scenes/sceneItems/desert_sheet/tuft9.tscn",
+	"node": "tuft9",
+	"region_rect": [
+	  1678,
+	  1365,
+	  292,
+	  89
+	],
+	"class": "tuft"
+  }
+]

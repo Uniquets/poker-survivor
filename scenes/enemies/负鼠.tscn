@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://bn8lfgivq2ety"]
+
+[ext_resource type="Script" uid="uid://cu33qawob2kim" path="res://scripts/combat/enemy.gd" id="1_uqoym"]
+[ext_resource type="Script" uid="uid://8ia3clyvd0jk" path="res://scripts/combat/combat_health_component.gd" id="3_3b6pd"]
+[ext_resource type="PackedScene" uid="uid://ddt8nb4nw8dln" path="res://scenes/combat/CombatHitbox2D.tscn" id="4_nxhun"]
+[ext_resource type="PackedScene" path="res://scenes/combat/CombatHurtbox2D.tscn" id="5_t5xw2"]
+[ext_resource type="Script" path="res://scripts/combat/enemy_drop_entry.gd" id="6_dentry"]
+[ext_resource type="PackedScene" uid="uid://dgg2ev50km6x3" path="res://scenes/combat/ExperienceOrb.tscn" id="7_exp"]
+
+[sub_resource type="Resource" id="Resource_opossum_orb"]
+script = ExtResource("6_dentry")
+pickup_scene = ExtResource("7_exp")
+drop_probability = 1.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_6mpac"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 12.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2n0g8"]
+radius = 17.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_contact_slime"]
+radius = 25.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurt"]
+radius = 25.0
+
+[node name="SLM" type="CharacterBody2D" unique_id=1397438496]
+script = ExtResource("1_uqoym")
+move_speed = 75.0
+touch_damage = 1000
+max_health = 30
+death_drop_entries = Array[ExtResource("6_dentry")]([SubResource("Resource_opossum_orb")])
+animated_sprite_node = NodePath("AnimatedSprite2D")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1678038559]
+position = Vector2(0, -40)
+scale = Vector2(0.25, 0.25)
+sprite_frames = SubResource("SpriteFrames_6mpac")
+autoplay = "default"
+frame_progress = 0.6465459
+
+[node name="CombatHealthComponent" type="Node" parent="." unique_id=515732477]
+script = ExtResource("3_3b6pd")
+
+[node name="BodyBox" type="CollisionShape2D" parent="." unique_id=537616364]
+position = Vector2(-1, -26)
+shape = SubResource("CircleShape2D_2n0g8")
+
+[node name="HitShape" type="CollisionShape2D" parent="." unique_id=1818013342]
+position = Vector2(0, -35)
+shape = SubResource("CircleShape2D_contact_slime")
+
+[node name="HurtShape" type="CollisionShape2D" parent="." unique_id=864724448]
+position = Vector2(0, -36)
+shape = SubResource("CircleShape2D_hurt")
+
+[node name="EnemyContactHitbox2D" parent="." unique_id=2082176844 instance=ExtResource("4_nxhun")]
+position = Vector2(-1, -26)
+hit_collision_shape = NodePath("../HitShape")
+
+[node name="CombatHurtbox2D" parent="." unique_id=711088069 instance=ExtResource("5_t5xw2")]
+position = Vector2(0, -40)
+hurt_collision_shape = NodePath("../HurtShape")

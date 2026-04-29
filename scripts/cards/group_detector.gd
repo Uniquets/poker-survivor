@@ -1,6 +1,6 @@
 extends RefCounted
 class_name GroupDetector
-## 从左到右在给定起点上取「最长合法组」：与 RULES 优先级一致；对外请用 **`GroupDetector.find_longest_group` 等静态方法**（内部懒单例转发）
+## 从左到右在给定起点上取「最长合法组」：与 `docs/详细设计.md` 组牌不变量及牌型优先级一致；对外请用 **`GroupDetector.find_longest_group` 等静态方法**（内部懒单例转发）
 
 ## 顺子最少张数
 const STRAIGHT_MIN_LENGTH: int = 3

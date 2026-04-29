@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://by0drq4ef0q10"]
+
+[ext_resource type="Script" uid="uid://dx0bvosb6lmi3" path="res://scripts/combat/waypoint_arena_projectile.gd" id="1_8t34g"]
+[ext_resource type="Texture2D" uid="uid://b1ceft3qxkvqv" path="res://assets/sprites/card/投射物卡牌.png" id="2_8t34g"]
+[ext_resource type="Script" uid="uid://cjippbu6wa8ed" path="res://scripts/combat/sprite_visual_deformation.gd" id="3_nda48"]
+[ext_resource type="PackedScene" uid="uid://bept2hboxschc" path="res://scenes/vfx/Rank2ProjectileTrail.tscn" id="3_rlue3"]
+[ext_resource type="Script" uid="uid://jqva24rw84sf" path="res://scripts/combat/combat_hitbox_2d.gd" id="4_b6wt3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b8ygn"]
+atlas = ExtResource("2_8t34g")
+region = Rect2(141.46991, 468.3515, 89.53261, 134.05951)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8t34g"]
+radius = 6.0
+height = 26.0
+
+[node name="WaypointArenaCardProjectile" type="Node2D" unique_id=1087857865]
+script = ExtResource("1_8t34g")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=2093104312]
+rotation = 1.5707964
+scale = Vector2(0.2, 0.2)
+texture = SubResource("AtlasTexture_b8ygn")
+script = ExtResource("3_nda48")
+deform_kind = 1
+spin_radians_per_second = 30.0
+
+[node name="Rank2ProjectileTrail" parent="." unique_id=1624560362 instance=ExtResource("3_rlue3")]
+
+[node name="HitShape" type="CollisionShape2D" parent="." unique_id=1241772180]
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_8t34g")
+
+[node name="CombatHitbox2D" type="Area2D" parent="." unique_id=1075544491]
+collision_layer = 8
+collision_mask = 16
+monitorable = false
+script = ExtResource("4_b6wt3")
+hit_collision_shape = NodePath("../HitShape")

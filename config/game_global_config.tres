@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="GameGlobalConfig" format=3 uid="uid://b85tpjtpsmbp7"]
+
+[ext_resource type="Script" uid="uid://4gdkpjrhdbn" path="res://scripts/core/game_global_config.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://suqlyqntxy3a" path="res://config/card_draw_probability_config.tres" id="2_draw"]
+[ext_resource type="Resource" uid="uid://uj0o7yxdi7mf" path="res://config/card_face_config.tres" id="3_face"]
+[ext_resource type="Resource" uid="uid://btyvrtyvbvm7n" path="res://config/game_global_audio_config.tres" id="4_audio"]
+
+[resource]
+script = ExtResource("1_script")
+global_audio = ExtResource("4_audio")
+card_draw_probability = ExtResource("2_draw")
+card_face_config = ExtResource("3_face")

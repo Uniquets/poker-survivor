@@ -1,0 +1,35 @@
+[gd_resource type="TileSet" format=3 uid="uid://b8d0kvu0q21n1"]
+
+[ext_resource type="Texture2D" uid="uid://b2jpehkksbgg1" path="res://assets/sprites/scene/地面+墙面2.png" id="1_qgcbf"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7x88p"]
+resource_name = "地面"
+texture = ExtResource("1_qgcbf")
+margins = Vector2i(17, 17)
+separation = Vector2i(23, 21)
+texture_region_size = Vector2i(90, 89)
+0:0/0 = 0
+0:1/0 = 0
+1:0/0 = 0
+2:1/0 = 0
+1:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:1/0 = 0
+7:8/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_qgcbf"]
+resource_name = "墙面"
+texture = ExtResource("1_qgcbf")
+margins = Vector2i(15, 16)
+separation = Vector2i(21, 19)
+texture_region_size = Vector2i(92, 91)
+2:0/0 = 0
+3:0/0 = 0
+2:1/0 = 0
+
+[resource]
+tile_size = Vector2i(90, 90)
+sources/1 = SubResource("TileSetAtlasSource_7x88p")
+sources/2 = SubResource("TileSetAtlasSource_qgcbf")

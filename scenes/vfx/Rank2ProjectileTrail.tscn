@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://bept2hboxschc"]
+
+[ext_resource type="Texture2D" uid="uid://bfl8to45v6cj3" path="res://resources/vfx/rank2_trail_particle_blob.tres" id="1_25uy0"]
+
+[sub_resource type="Curve" id="Curve_25uy0"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_3q6jv"]
+curve = SubResource("Curve_25uy0")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_25uy0"]
+particle_flag_disable_z = true
+direction = Vector3(-1, 0, 0)
+spread = 1.509
+initial_velocity_min = 24.519999
+initial_velocity_max = 64.13
+angular_velocity_min = -1.8
+angular_velocity_max = 1.8
+gravity = Vector3(0, -18, 0)
+radial_accel_min = -12.0
+radial_accel_max = 18.0
+tangential_accel_min = -8.0
+tangential_accel_max = 8.0
+damping_min = 14.0
+damping_max = 32.0
+scale_curve = SubResource("CurveTexture_3q6jv")
+hue_variation_min = -2.2351742e-08
+hue_variation_max = -2.2351742e-08
+
+[node name="Control" type="Control" unique_id=869421112]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Rank2ProjectileTrail" type="GPUParticles2D" parent="." unique_id=1941362037]
+z_index = -2
+position = Vector2(-18, 0)
+amount = 10
+texture = ExtResource("1_25uy0")
+lifetime = 0.2
+randomness = 0.4
+visibility_rect = Rect2(-96, -96, 192, 192)
+draw_order = 0
+process_material = SubResource("ParticleProcessMaterial_25uy0")

@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://cij3a8stcpjym"]
+
+[ext_resource type="Script" uid="uid://bo7o5vdvrd0ui" path="res://scripts/combat/explosion_one_shot.gd" id="1_ex"]
+[ext_resource type="Script" uid="uid://jqva24rw84sf" path="res://scripts/combat/combat_hitbox_2d.gd" id="2_hb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_explosion_hit_editor"]
+radius = 90.0
+
+[node name="ExplosionOneShot" type="Node2D" unique_id=847085691]
+script = ExtResource("1_ex")
+
+[node name="HitShape" type="CollisionShape2D" parent="." unique_id=786592870]
+shape = SubResource("CircleShape2D_explosion_hit_editor")
+
+[node name="CombatHitbox2D" type="Area2D" parent="." unique_id=1042024089]
+collision_layer = 8
+collision_mask = 16
+monitorable = false
+script = ExtResource("2_hb")
+hit_collision_shape = NodePath("../HitShape")

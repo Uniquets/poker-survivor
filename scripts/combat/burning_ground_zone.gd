@@ -11,6 +11,8 @@ var zone_duration_seconds: float = 4.0
 var _tick_interval_seconds: float = 0.45
 ## 敌人管理器
 var _enemy_manager: Node = null
+## 灼烧 tick 复用的命中投递
+var _hit_delivery: CombatHitDelivery = CombatHitDelivery.new()
 ## 累计存活时间
 var _elapsed: float = 0.0
 ## 距下次结算剩余时间
@@ -23,6 +25,7 @@ func setup(enemy_manager: Node, radius_px: float, duration_sec: float, dps: int)
 	zone_radius = maxf(8.0, radius_px)
 	zone_duration_seconds = maxf(0.2, duration_sec)
 	burn_dps = maxi(0, dps)
+	_hit_delivery.source = self
 
 
 func _ready() -> void:
@@ -43,17 +46,28 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
-## 对圆内敌人造成一次 tick 伤害（按间隔拆分的 DPS）
+## 对圆内敌人造成一次 tick 伤害（按间隔拆分的 DPS）；飘字取圆心→敌心方向上的**区内落点**（敌在区内时即敌心）
 func _tick_damage() -> void:
 	if _enemy_manager == null:
 		return
 	var per_tick: int = maxi(1, int(round(float(burn_dps) * _tick_interval_seconds)))
-	for child in _enemy_manager.get_children():
+	var units: Node = _enemy_manager
+	if _enemy_manager is EnemyManager:
+		units = (_enemy_manager as EnemyManager).get_units_root()
+	for child in units.get_children():
 		var enemy := child as CombatEnemy
 		if enemy == null or enemy.is_dead():
 			continue
-		if global_position.distance_to(enemy.global_position) <= zone_radius:
-			enemy.apply_damage(per_tick)
+		var anchor_e: Vector2 = enemy.get_hurtbox_anchor_global()
+		var to_e: Vector2 = anchor_e - global_position
+		if to_e.length() <= zone_radius:
+			var burn_hit: Vector2 = (
+				global_position + to_e.normalized() * minf(zone_radius, to_e.length())
+				if to_e.length_squared() > 1e-8
+				else anchor_e
+			)
+			_hit_delivery.damage = per_tick
+			CombatHurtbox2D.deliver_to_enemy_best_effort(enemy, _hit_delivery, burn_hit)
 
 
 func _draw() -> void:

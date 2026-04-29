@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="CombatMechanicsTuning" format=3 uid="uid://dy6kqfvdelk2w"]
+
+[ext_resource type="Script" uid="uid://b1kecomko8meh" path="res://scripts/core/combat_mechanics_tuning.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")

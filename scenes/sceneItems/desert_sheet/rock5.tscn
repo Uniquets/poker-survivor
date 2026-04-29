@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://des95890cb7cd20"]
+
+[ext_resource type="Texture2D" uid="uid://djs6e5ws5ynrg" path="res://assets/sprites/scene/荒漠素材.png" id="1_tex"]
+
+[node name="rock5" type="Sprite2D"]
+texture = ExtResource("1_tex")
+region_enabled = true
+region_rect = Rect2(432, 1366, 102, 58)

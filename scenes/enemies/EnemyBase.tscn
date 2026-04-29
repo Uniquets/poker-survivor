@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://d4m25gbsqdmh1"]
+
+[ext_resource type="Script" uid="uid://cu33qawob2kim" path="res://scripts/combat/enemy.gd" id="1_k66v0"]
+[ext_resource type="Script" path="res://scripts/combat/combat_health_component.gd" id="2b_health"]
+[ext_resource type="PackedScene" uid="uid://ddt8nb4nw8dln" path="res://scenes/combat/CombatHitbox2D.tscn" id="3_contact_hit"]
+[ext_resource type="PackedScene" uid="uid://brwjdpp5cckt2" path="res://scenes/combat/CombatHurtbox2D.tscn" id="4_hurt_scene"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2n0g8"]
+radius = 2.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_contact"]
+radius = 48.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurt"]
+radius = 22.0
+
+[node name="Enemy" type="CharacterBody2D" unique_id=1397438496]
+script = ExtResource("1_k66v0")
+
+[node name="CombatHealthComponent" type="Node" parent="." unique_id=2139666841]
+script = ExtResource("2b_health")
+
+[node name="BodyBox" type="CollisionShape2D" parent="." unique_id=537616364]
+shape = SubResource("CircleShape2D_2n0g8")
+
+[node name="HitShape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_contact")
+
+[node name="EnemyContactHitbox2D" parent="." unique_id=1290496576 instance=ExtResource("3_contact_hit")]
+hit_collision_shape = NodePath("../HitShape")
+
+[node name="HurtShape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hurt")
+
+[node name="CombatHurtbox2D" parent="." instance=ExtResource("4_hurt_scene")]
+hurt_collision_shape = NodePath("../HurtShape")

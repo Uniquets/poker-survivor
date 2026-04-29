@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://ptin3gnmdfy0"]
+
+[ext_resource type="Texture2D" uid="uid://c7cdcp2776dmg" path="res://assets/sprites/combat/打击.png" id="1_7ut48"]
+[ext_resource type="Script" uid="uid://dtt8n1f8q5b1u" path="res://scripts/combat/hit_feedback_vfx.gd" id="1_hitfx"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ut48"]
+atlas = ExtResource("1_7ut48")
+region = Rect2(0, 0, 720, 728)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_or00b"]
+atlas = ExtResource("1_7ut48")
+region = Rect2(720, 0, 720, 728)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e6x6e"]
+atlas = ExtResource("1_7ut48")
+region = Rect2(720, 1456, 720, 728)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_q11se"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7ut48")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_or00b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e6x6e")
+}],
+"loop": false,
+"name": &"default",
+"speed": 20.0
+}]
+
+[node name="Hit" type="Node2D" unique_id=658921989]
+script = ExtResource("1_hitfx")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=685838245]
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_q11se")
+frame = 2
+frame_progress = 1.0

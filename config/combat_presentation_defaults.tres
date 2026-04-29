@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CombatPresentationDefaults" format=3 uid="uid://bfjlefr4h5olo"]
+
+[ext_resource type="Script" uid="uid://b8ddlfi3ens3b" path="res://scripts/core/combat_presentation_defaults.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://bftvcfkwkgkiq" path="res://scenes/combat/boom.tscn" id="5_rank8_boom"]
+[ext_resource type="PackedScene" uid="uid://ptin3gnmdfy0" path="res://scenes/vfx/Hit.tscn" id="6_hit"]
+
+[resource]
+script = ExtResource("1_script")
+hit_feedback_vfx_scene = ExtResource("6_hit")
+explosion_hit_vfx_scene = ExtResource("5_rank8_boom")
+hit_knockback_decay_per_second = 20.0

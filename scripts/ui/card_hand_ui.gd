@@ -1,100 +1,154 @@
-extends HBoxContainer
+extends Control
 class_name CardHandUI
-## 底部手牌条：订阅 CardRuntime；外层槽仅占位，内层 Nudge 承担位移 tween，Card 铺满以保持原场景布局
+## 底部手牌：`HandFan` 为**无拉伸锚点**的扇形容器，由脚本写 `size`/`position` 实现**水平居中**与**底对齐**；`_dock_shift_y` 仅由悬停/收起驱动；打出组牌**只** tween 各槽 `Nudge` 轻微上弹，不改动 `_dock_shift_y`
 
 ## 卡牌场景预制
 @export var card_scene: PackedScene
-## 槽位水平间距（主题覆盖用）
-@export var card_spacing: float = -40
 ## 最多渲染张数（防极端长手）
 @export var max_cards_displayed: int = 20
 
-## 缓存的 CardRuntime 引用
+@export_group("手牌槽")
+## 单槽宽（像素），须与 `scenes/ui/Card.tscn` 根节点最小尺寸一致
+@export var hand_slot_width: float = 160.0
+## 单槽高（像素）
+@export var hand_slot_height: float = 240.0
+
+@export_group("扇形布局")
+## 少张牌（接近 **`fan_arc_blend_full_at_cards`** 下界）时的枢轴圆半径（像素）；与 **`fan_radius_max_px`** 按张数线性插值，张数 ≥ 该阈值时半径取最大值
+@export_range(120.0, 900.0, 5.0) var fan_radius_min_px: float = 420.0
+## 手牌张数达到 **`fan_arc_blend_full_at_cards`** 及以上时的枢轴圆半径（像素）；越大同半角下牌间距越疏
+@export_range(120.0, 1200.0, 5.0) var fan_radius_max_px: float = 580.0
+## 手牌较多时扇形半角（度）上限；少张牌时用 **`fan_arc_half_deg_compact`** 与插值，避免 2～3 张时占满整弧显得过疏
+@export_range(6.0, 40.0, 0.5) var fan_arc_half_deg: float = 24.0
+## 少张牌（接近 **`fan_arc_blend_full_at_cards`** 下界）时的扇形半角（度）；与 **`fan_arc_half_deg`** 之间按张数插值
+@export_range(4.0, 28.0, 0.5) var fan_arc_half_deg_compact: float = 11.0
+## 手牌张数 ≥ 此值时半角达到 **`fan_arc_half_deg`**（之间线性插值；须 ≥ 3）
+@export_range(3, 30, 1) var fan_arc_blend_full_at_cards: int = 14
+## 叠在「牌面自动朝向枢轴」之上的额外倾斜（度），用于整体左旋/右旋微调
+@export_range(-30.0, 30.0, 0.1) var fan_tilt_extra_deg: float = 0.0
+## 扇区包围盒内边距（像素）
+@export_range(0.0, 48.0, 1.0) var fan_bounds_padding: float = 16.0
+## 估算竖向占位时，`fan_bounds_padding` 的倍数（越大越不易裁到牌顶）
+@export_range(1.0, 5.0, 0.1) var fan_bounds_vertical_pad_factor: float = 3.0
+## 扇形容器竖向高度下限（像素），避免张数少时过扁
+@export var fan_layout_height_floor_px: float = 280.0
+## 最终高度不低于 `H_est * 此比例`（H_est 为几何估算高度）
+@export_range(0.15, 0.8, 0.01) var fan_height_min_ratio_of_est: float = 0.35
+## 超过 3 张后，在包围盒宽度之外每多一张至少再放宽的像素（与缩小角间距并行，避免「只挤不换行宽」）
+@export_range(0.0, 48.0, 1.0) var fan_width_expand_per_card_after_three_px: float = 14.0
+
+@export_group("整体 dock")
+## 鼠标在手牌热区内、动画结束后 **`_dock_shift_y`** 的目标值（像素）。`_hand_fan.position.y = size.y - fh + _dock_shift_y`，**负值**表示相对「底边对齐」基准整体**更靠上**，用于固定「弹出后停在哪」
+@export_range(-220.0, 80.0, 1.0) var dock_hand_shift_y_hover_px: float = 0.0
+## 非悬停收起时，在 **`dock_hand_shift_y_hover_px`** 之上再整体**向下**多移的像素，即收起与悬停间 **`_dock_shift_y`** 的差值（进出热区的行程）
+@export_range(0.0, 320.0, 1.0) var dock_hover_raise_px: float = 125.0
+## 收起/展开平移动画时长（秒）
+@export var dock_tween_sec: float = 0.22
+
+@export_group("悬停热区")
+## 热区左右扩展（像素）
+@export_range(0.0, 120.0, 1.0) var hover_pad_x: float = 32.0
+## 热区向上扩展 = **当前张数插值后的半径** * 此系数 + `hover_pad_top_add_px`（与摆扇半径一致）
+@export_range(0.0, 0.35, 0.01) var hover_pad_top_radius_mul: float = 0.12
+@export var hover_pad_top_add_px: float = 40.0
+## 热区向下扩展（像素）
+@export_range(0.0, 120.0, 1.0) var hover_pad_bottom: float = 36.0
+
+@export_group("打出 · 轻微上弹")
+## 打出时相对槽内 `Nudge` 本地坐标的垂直位移（负为向上）
+@export_range(-24.0, 0.0, 0.5) var play_rise_pixels: float = -5.0
+## 打出高亮上升段时长（秒）
+@export_range(0.05, 0.6, 0.01) var play_tween_up_sec: float = 0.2
+## 打出回落段时长（秒）
+@export_range(0.05, 0.6, 0.01) var play_tween_down_sec: float = 0.2
+## 打出瞬间对 `Card.modulate` 的着色（高亮）
+@export var play_pulse_modulate: Color = Color(5, 5, 0.55)
+
+@export_group("选牌/压暗叠层")
+## 选牌或测试菜单压暗时，每张牌 `self_modulate` 提亮系数
+@export var overlay_hand_card_self_modulate: Color = Color(1.14, 1.15, 1.2, 1.0)
+
+@onready var _hand_fan: Control = $HandFan
+
 var _card_runtime = null
-## 当前子节点槽位 Control 列表
 var _card_elements: Array = []
-## 打出高亮结束后的单次刷新（重启以避免多张牌连续打出时旧定时器提前清空 UI）
 var _activation_cleanup_timer: Timer = null
-
-## 打出瞬间高亮颜色
-const _ACTIVATE_COLOR := Color(5, 5, 0.55)
-## 打出时相对槽位向上位移（像素）
-const _ACTIVATE_RISE_PX := -5.0
-## 高亮上升段时长（秒）
-const _TWEEN_UP_SEC := 0.2
-## 回落段时长（秒）
-const _TWEEN_DOWN_SEC := 0.2
-## 出牌指针位：轻微上移与淡着色
-const _PLAYHEAD_Y := -3.0
-const _PLAYHEAD_MOD := Color(5, 5, 0.96)
-## 单槽宽高（像素）
-const _SLOT_W := 80.0
-const _SLOT_H := 100.0
+var _overlay_glow_active: bool = false
+## 鼠标是否希望手牌整体上移（全露）
+var _hover_wants_raise: bool = false
+var _activation_busy: int = 0
+var _dock_tween: Tween = null
+## 相对「底对齐全露」位置整体向下平移的像素；0 为全露，越大越下沉（收起态）
+var _dock_shift_y: float = 0.0
 
 
-## 设置间距并延迟查找 CardRuntime
+## 初始化定时器；`HandFan` 不用底锚，避免引擎覆盖 `position`
 func _ready() -> void:
-	add_theme_constant_override("separation", int(card_spacing))
 	_activation_cleanup_timer = Timer.new()
 	_activation_cleanup_timer.one_shot = true
 	_activation_cleanup_timer.timeout.connect(_update_hand_display)
 	add_child(_activation_cleanup_timer)
-	print("[ui] CardHandUI ready, starting deferred find")
 	call_deferred("_deferred_init")
 
 
-## 首次绑定 runtime 并建手牌
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		if _card_elements.size() > 0:
+			call_deferred("_deferred_relayout_fan_only")
+
+
+func _deferred_relayout_fan_only() -> void:
+	if not is_instance_valid(_hand_fan) or _card_elements.is_empty():
+		return
+	_layout_fan_slots(_card_elements.size())
+
+
+## 鼠标在手牌全局热区内则整体上移，离开则移回（与打出 `Nudge` tween 并行；**不因** **`_activation_busy`** 暂停，否则打出牌型时热区整体升降失效）
+func _process(_delta: float) -> void:
+	if not is_visible_in_tree() or _hand_fan == null:
+		return
+	if _card_runtime == null:
+		return
+	var want := _is_mouse_in_hand_hover_zone()
+	if want == _hover_wants_raise:
+		return
+	_hover_wants_raise = want
+	_tween_dock_towards_hover(want)
+
+
 func _deferred_init() -> void:
 	_find_card_runtime()
 	_update_hand_display()
 
-## 从当前场景 RunScene 取 CardRuntime 并连信号
+
 func _find_card_runtime() -> void:
 	var root = get_tree()
 	if root == null:
-		print("[ui] CardHandUI error: root is null")
 		return
-	
 	var run_scene = root.get_current_scene()
 	if run_scene == null:
-		print("[ui] CardHandUI error: current scene is null")
 		return
-	
-	print("[ui] CardHandUI current scene: %s" % run_scene.name)
-	
 	if run_scene.has_method("get_card_runtime"):
 		_card_runtime = run_scene.get_card_runtime()
 		if _card_runtime != null:
 			_card_runtime.hand_updated.connect(_on_hand_updated)
 			_card_runtime.group_played.connect(_on_group_played)
-			print("[ui] CardHandUI connected to CardRuntime")
-		else:
-			print("[ui] CardHandUI warning: get_card_runtime returned null")
-	else:
-		print("[ui] CardHandUI warning: run_scene has no get_card_runtime method")
 
 
-## 手牌数据变化：清空高亮状态并重建
 func _on_hand_updated() -> void:
-	print("[ui] CardHandUI hand_updated signal received")
 	_update_hand_display()
 
 
-## 一组牌打出：先按新指针重建，再对刚打出区间做 tween
-func _on_group_played(group_cards: Array, _group_type: String) -> void:
+## 组牌打出：仅对区间内每张牌做 `Nudge` 轻微上弹，**不改变** `_dock_shift_y`（避免整手整体上移）
+func _on_group_played(_group_cards: Array, _group_type: String) -> void:
 	if _card_runtime == null:
 		return
 	var start: int = _card_runtime.current_index
-	var end: int = start + group_cards.size()
-	# 必须刷新：动画用 _card_elements[i] 下标，不用 group_cards 里的节点；且 current_index 变化后
-	# 需重建槽位上的 playhead（modulate / nudge.position）。仅「cards 数组长度不变」不等于「UI 槽与指针对齐」。
-	# _update_hand_display()
+	var end: int = start + _group_cards.size()
 	_play_group_activation_tween(start, end)
 
 
-## 对 [start, end) 范围内的卡槽统一调用 _activate_card_tween 实现弹出动画
 func _play_group_activation_tween(start: int, end: int) -> void:
-	print("[ui] CardHandUI _play_group_activation_tween，播放卡牌动画")
 	for i in range(start, end):
 		if i < 0 or i >= _card_elements.size():
 			continue
@@ -108,124 +162,320 @@ func _play_group_activation_tween(start: int, end: int) -> void:
 		if c == null or not is_instance_valid(c):
 			continue
 		_activate_card_tween(nudge, c)
-#
-	#if ran and _activation_cleanup_timer != null:
-		#_activation_cleanup_timer.stop()
-		#_activation_cleanup_timer.wait_time = _TWEEN_UP_SEC + _TWEEN_DOWN_SEC + 0.02
-		#_activation_cleanup_timer.start()
 
 
-## 单张牌弹出并变色动画；参数为 Nudge 层及 Card 控件，成功处理返回 true
+## 仅在槽的 `Nudge` 本地坐标上位移，父级 `_dock_shift_y` 不影响该相对动画
 func _activate_card_tween(nudge: Control, c: Control) -> bool:
-	# 中文：负责单张牌上弹与变色动画，确保节点有效后执行c
-	# 打印nudge和c的id
 	if nudge == null or c == null or not is_instance_valid(nudge) or not is_instance_valid(c):
 		return false
 	var ox: float = nudge.position.x
 	var base_y: float = nudge.position.y
-	print("[ui] CardHandUI _activate_card_tween，nudge的id为%d，c的id为%d" % [nudge.get_instance_id(), c.get_instance_id()])
+	_activation_busy += 1
 	var tw := c.create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(c, "modulate", _ACTIVATE_COLOR, _TWEEN_UP_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.tween_property(nudge, "position", Vector2(ox, base_y + _ACTIVATE_RISE_PX), _TWEEN_UP_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(c, "modulate", play_pulse_modulate, play_tween_up_sec).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(nudge, "position", Vector2(ox, base_y + play_rise_pixels), play_tween_up_sec).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tw.chain()
 	tw.set_parallel(false)
-	tw.tween_property(c, "modulate", Color.WHITE, _TWEEN_DOWN_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(nudge, "position", Vector2(ox, base_y), _TWEEN_DOWN_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(c, "modulate", Color.WHITE, play_tween_down_sec).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(nudge, "position", Vector2(ox, base_y), play_tween_down_sec).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.finished.connect(_on_activation_tween_finished, CONNECT_ONE_SHOT)
 	return true
 
 
-## 销毁旧槽并按 runtime.cards 重建
-func _update_hand_display() -> void:
-	if _card_runtime == null:
-		print("[ui] CardHandUI: card_runtime is null")
+func _on_activation_tween_finished() -> void:
+	_activation_busy = maxi(0, _activation_busy - 1)
+	if _activation_busy > 0:
 		return
-	
-	var cards = _card_runtime.cards
-	print("[ui] CardHandUI _update_hand_display，重建卡牌，长度为%d" % cards.size())
+	if _is_mouse_in_hand_hover_zone():
+		_hover_wants_raise = true
+		_tween_dock_towards_hover(true)
+	else:
+		_hover_wants_raise = false
+		_tween_dock_towards_hover(false)
 
-	if cards.size() == 0:
-		print("[ui] CardHandUI: cards array is empty")
+
+func _update_hand_display() -> void:
+	_kill_dock_tween()
+	## 重建手牌时会 **`queue_free`** 槽内节点，进行中的打出 tween 被引擎杀掉且**不会**触发 **`finished`**；若不把计数清零，**`_activation_busy` 会永久 > 0**，**`_process`** 永远跳过悬停 dock
+	_activation_busy = 0
+	if _card_runtime == null:
+		while _card_elements.size() > 0:
+			var el = _card_elements.pop_back()
+			if is_instance_valid(el):
+				el.queue_free()
+		_hover_wants_raise = false
+		_apply_dock_shift(0.0)
+		_shrink_hand_fan_empty()
 		return
-	
+
+	var cards = _card_runtime.cards
+	if cards.size() == 0:
+		while _card_elements.size() > 0:
+			var el0 = _card_elements.pop_back()
+			if is_instance_valid(el0):
+				el0.queue_free()
+		_hover_wants_raise = false
+		_apply_dock_shift(0.0)
+		_shrink_hand_fan_empty()
+		return
+
 	while _card_elements.size() > 0:
 		var element = _card_elements.pop_back()
-		element.queue_free()
+		if is_instance_valid(element):
+			element.queue_free()
 
-	var display_count = min(cards.size(), max_cards_displayed)
-	
-	print("[ui] CardHandUI displaying %d cards" % display_count)
-	
+	var display_count: int = mini(cards.size(), max_cards_displayed)
 	for i in range(display_count):
 		var card = cards[i]
-		var element = _create_card_element(card, i)
-		if element != null:
-			_card_elements.append(element)
-			add_child(element)
+		var slot_ctrl = _create_card_element(card, i)
+		if slot_ctrl != null:
+			_card_elements.append(slot_ctrl)
+			_hand_fan.add_child(slot_ctrl)
+
+	_layout_fan_slots(display_count)
+	_sync_hand_card_overlay_glow()
+	if _activation_busy <= 0:
+		_apply_dock_shift(dock_hand_shift_y_hover_px if _hover_wants_raise else _collapse_shift_px())
 
 
-## 创建占位槽：外层只占 HBox 一格、无绘制；Nudge 层负责整体上下位移；Card 铺满内层以保持场景内布局比例
-## 创建一张手牌的显示元素（包含占位槽、nudge 动画层与卡牌渲染）
-## @param card: CardResource 实例, 需显示的卡牌数据
-## @param index: int, 该卡在手牌中的序号（用于确定位置和是否为播放指针位置）
-## @return Control, 返回手牌栏的最外层槽节点，内含 nudge 控件和具体卡牌
+func set_hand_card_overlay_glow(on: bool) -> void:
+	_overlay_glow_active = on
+	_sync_hand_card_overlay_glow()
+
+
+func _sync_hand_card_overlay_glow() -> void:
+	var target: Color = overlay_hand_card_self_modulate if _overlay_glow_active else Color.WHITE
+	for slot: Control in _card_elements:
+		if slot == null or not is_instance_valid(slot):
+			continue
+		if slot.get_child_count() < 1:
+			continue
+		var nudge: Control = slot.get_child(0) as Control
+		if nudge == null or nudge.get_child_count() < 1:
+			continue
+		var c: Card = nudge.get_child(0) as Card
+		if c == null or not is_instance_valid(c):
+			continue
+		c.self_modulate = target
+
+
 func _create_card_element(card: CardResource, index: int) -> Control:
-	# 卡片场景资源懒加载（仅首次用到时加载 .tscn 文件）
 	if card_scene == null:
 		card_scene = load("res://scenes/ui/Card.tscn")
 
-	# 创建最外层槽（仅占格，无交互和渲染，便于 HBox 布局）
-	var slot_size := Vector2(_SLOT_W, _SLOT_H)  # 中文：槽的像素尺寸来自常量
-	var slot := Control.new()  # 最外层槽：仅用于布局
+	var slot_size := Vector2(hand_slot_width, hand_slot_height)
+	var slot := Control.new()
 	slot.custom_minimum_size = slot_size
-	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不拦截鼠标事件
-	slot.name = "HandSlot_%d" % index  # 便于调试
+	slot.size = slot_size
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.name = "HandSlot_%d" % index
 
-	# 创建 Nudge 层（支持动画卡牌整体上下移动，无绘制）
 	var nudge := Control.new()
 	nudge.name = "Nudge"
-	nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不拦截鼠标事件
-	nudge.set_anchors_preset(Control.PRESET_FULL_RECT)  # 填满父槽
+	nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nudge.set_anchors_preset(Control.PRESET_FULL_RECT)
 	nudge.offset_left = 0
 	nudge.offset_top = 0
 	nudge.offset_right = 0
 	nudge.offset_bottom = 0
+	nudge.position = Vector2.ZERO
 
-	# 实例化卡牌渲染节点（Card 场景）
 	var element := card_scene.instantiate() as Card
 	if element == null:
-		print("[ui] CardHandUI error: failed to instantiate Card scene")
-		return null  # 实例化失败，记录日志并返回
-
-	element.set_anchors_preset(Control.PRESET_FULL_RECT)  # 填满 Nudge 层
+		return null
+	element.set_anchors_preset(Control.PRESET_FULL_RECT)
 	element.offset_left = 0
 	element.offset_top = 0
 	element.offset_right = 0
 	element.offset_bottom = 0
-	element.set_card(card)  # 绑定数据
-	print("[ui] CardHandUI created card: %s" % card.get_full_name())
+	element.set_card(card)
 
-	# 判断该卡是否是“播放指针”所指向的卡（逻辑判定用来高亮动画、标位移）
-	# var is_playhead: bool = index == _card_runtime.current_index
-	# if is_playhead:
-	# 	nudge.position = Vector2(0, _PLAYHEAD_Y)  # 播放指针：整体上移
-	# 	element.modulate = _PLAYHEAD_MOD  # “指针”特有变色（高亮等效果）
-	# else:
-	# 	nudge.position = Vector2.ZERO  # 其他卡居中无位移
-	# 	element.modulate = Color.WHITE  # 默认渲染色
-
-	nudge.add_child(element)   # 先将卡牌节点添加到 Nudge 层
-	slot.add_child(nudge)      # 再把 Nudge 层放到最外层槽
-	return slot                # 返回槽节点供外层布局
+	nudge.add_child(element)
+	slot.add_child(nudge)
+	return slot
 
 
-## 返回当前手牌张数（无 runtime 则 0）
 func get_card_count() -> int:
 	if _card_runtime == null:
 		return 0
 	return _card_runtime.cards.size()
 
 
-## 外部强制刷新显示
 func refresh_display() -> void:
 	_update_hand_display()
+
+
+## 摆扇并在 `HandFan` 内水平居中内容；最后写 `HandFan.size` 并 `_reposition_hand_fan`
+func _layout_fan_slots(n: int) -> void:
+	if n <= 0 or _hand_fan == null:
+		return
+	var W_parent: float = maxf(32.0, size.x)
+	var half_arc: float = _compute_fan_half_arc_rad_for_count(n)
+	var R: float = _compute_fan_radius_for_count(n)
+	var H_est: float = R * (1.0 - cos(half_arc)) + hand_slot_height + fan_bounds_padding * fan_bounds_vertical_pad_factor
+	var H: float = maxf(fan_layout_height_floor_px, H_est)
+	var cx: float = W_parent * 0.5
+	var pivot_y: float = H - hand_slot_height * 0.5 + R
+	var pivot := Vector2(cx, pivot_y)
+
+	for i in range(n):
+		if i >= _card_elements.size():
+			break
+		var slot: Control = _card_elements[i] as Control
+		if slot == null:
+			continue
+		var u: float = 0.5 if n <= 1 else float(i) / float(n - 1)
+		var theta: float = lerpf(-half_arc, half_arc, u)
+		var center := pivot + Vector2(R * sin(theta), -R * cos(theta))
+		slot.pivot_offset = Vector2(hand_slot_width * 0.5, hand_slot_height * 0.5)
+		var to_pivot: Vector2 = pivot - center
+		if to_pivot.length_squared() < 0.0001:
+			slot.rotation = 0.0
+		else:
+			var v: Vector2 = to_pivot.normalized()
+			slot.rotation = v.angle() - PI * 0.5 + deg_to_rad(fan_tilt_extra_deg)
+		slot.position = center - slot.pivot_offset
+		if slot.get_child_count() >= 1:
+			var nudge: Control = slot.get_child(0) as Control
+			if nudge != null:
+				nudge.position = Vector2.ZERO
+
+	var mn := Vector2(INF, INF)
+	var mx := Vector2(-INF, -INF)
+	for j in range(n):
+		var s: Control = _card_elements[j] as Control
+		if s == null:
+			continue
+		var corners: Array[Vector2] = [
+			Vector2.ZERO,
+			Vector2(s.size.x, 0.0),
+			Vector2(s.size.x, s.size.y),
+			Vector2(0.0, s.size.y),
+		]
+		var xf := Transform2D(s.rotation, s.position)
+		for corner in corners:
+			var p: Vector2 = xf * corner
+			mn.x = minf(mn.x, p.x)
+			mn.y = minf(mn.y, p.y)
+			mx.x = maxf(mx.x, p.x)
+			mx.y = maxf(mx.y, p.y)
+
+	var pad := fan_bounds_padding
+	var shift := Vector2(pad - mn.x, pad - mn.y)
+	if shift.length_squared() > 0.0001:
+		for j2 in range(n):
+			var s2: Control = _card_elements[j2] as Control
+			if s2 != null:
+				s2.position += shift
+		mn += shift
+		mx += shift
+
+	var cw: float = mx.x - mn.x
+	var fan_w: float = maxf(W_parent, ceil(mx.x + pad))
+	var dx: float = (fan_w - cw) * 0.5 - mn.x
+	if absf(dx) > 0.01:
+		for j3 in range(n):
+			var s3: Control = _card_elements[j3] as Control
+			if s3 != null:
+				s3.position.x += dx
+		mn.x += dx
+		mx.x += dx
+
+	var fan_h: float = maxf(ceil(mx.y + pad), H_est * fan_height_min_ratio_of_est)
+	var extra_w: float = maxf(0.0, float(n - 3)) * fan_width_expand_per_card_after_three_px
+	var fan_w_final: float = fan_w + extra_w
+	if extra_w > 0.01:
+		var dx_extra: float = extra_w * 0.5
+		for j4 in range(n):
+			var s4: Control = _card_elements[j4] as Control
+			if s4 != null:
+				s4.position.x += dx_extra
+	_hand_fan.size = Vector2(fan_w_final, fan_h)
+	_hand_fan.custom_minimum_size = _hand_fan.size
+	_reposition_hand_fan()
+
+
+## 按张数在 **`fan_arc_half_deg_compact`** 与 **`fan_arc_half_deg`** 之间取半角（弧度）；少张紧凑、多张逐步放开弧长并与水平加宽配合
+func _compute_fan_half_arc_rad_for_count(n: int) -> float:
+	var lo: float = deg_to_rad(clampf(fan_arc_half_deg_compact, 1.0, fan_arc_half_deg))
+	var hi: float = deg_to_rad(fan_arc_half_deg)
+	if n <= 1:
+		return 0.0
+	var n_full: int = maxi(3, fan_arc_blend_full_at_cards)
+	var denom: float = float(max(1, n_full - 2))
+	var t: float = clampf((float(n) - 2.0) / denom, 0.0, 1.0)
+	return lerpf(lo, hi, t)
+
+
+## 按张数在 **`fan_radius_min_px`** 与 **`fan_radius_max_px`** 之间插值（与半角共用 **`fan_arc_blend_full_at_cards`** 的 t，保证弧与半径同步放开）；`n<=1` 取最小半径
+func _compute_fan_radius_for_count(n: int) -> float:
+	var r_lo: float = minf(fan_radius_min_px, fan_radius_max_px)
+	var r_hi: float = maxf(fan_radius_min_px, fan_radius_max_px)
+	if n <= 1:
+		return r_lo
+	var n_full: int = maxi(3, fan_arc_blend_full_at_cards)
+	var denom: float = float(max(1, n_full - 2))
+	var t: float = clampf((float(n) - 2.0) / denom, 0.0, 1.0)
+	return lerpf(r_lo, r_hi, t)
+
+
+func _shrink_hand_fan_empty() -> void:
+	if _hand_fan == null:
+		return
+	_hand_fan.size = Vector2(64.0, 8.0)
+	_hand_fan.custom_minimum_size = _hand_fan.size
+	_reposition_hand_fan()
+
+
+## 将 `HandFan` 底边贴 `CardHandUI` 底边，水平居中；`_dock_shift_y` 在收起时整体下移
+func _reposition_hand_fan() -> void:
+	if _hand_fan == null:
+		return
+	var fw: float = _hand_fan.size.x
+	var fh: float = _hand_fan.size.y
+	if fw < 1.0 or fh < 1.0:
+		return
+	_hand_fan.position.x = (size.x - fw) * 0.5
+	_hand_fan.position.y = size.y - fh + _dock_shift_y
+
+
+## 收起态 **`_dock_shift_y`**：悬停基准下移 **`dock_hover_raise_px`**（与 **`dock_hand_shift_y_hover_px`** 解耦，便于单独调「弹出后位置」与「行程」）
+func _collapse_shift_px() -> float:
+	return dock_hand_shift_y_hover_px + maxf(0.0, dock_hover_raise_px)
+
+
+## 写入 dock 偏移并立刻重算 `HandFan` 在父控件内的位置（无 tween）
+func _apply_dock_shift(v: float) -> void:
+	_dock_shift_y = v
+	_reposition_hand_fan()
+
+
+func _tween_dock_towards_hover(raised: bool) -> void:
+	if _hand_fan == null:
+		return
+	_kill_dock_tween()
+	var target: float = dock_hand_shift_y_hover_px if raised else _collapse_shift_px()
+	var tw := create_tween()
+	_dock_tween = tw
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_method(_apply_dock_shift, _dock_shift_y, target, dock_tween_sec)
+
+
+func _kill_dock_tween() -> void:
+	if _dock_tween != null and is_instance_valid(_dock_tween):
+		_dock_tween.kill()
+	_dock_tween = null
+
+
+func _is_mouse_in_hand_hover_zone() -> bool:
+	var hr: Rect2 = _hand_fan.get_global_rect()
+	if hr.size.x <= 1.0 or hr.size.y <= 1.0:
+		return false
+	var pad_x: float = hover_pad_x
+	var n_hover: int = _card_elements.size()
+	var R_hover: float = _compute_fan_radius_for_count(n_hover)
+	var pad_top: float = R_hover * hover_pad_top_radius_mul + hover_pad_top_add_px
+	var pad_bot: float = hover_pad_bottom
+	hr = hr.grow_individual(pad_x, pad_top, pad_x, pad_bot)
+	return hr.has_point(get_global_mouse_position())

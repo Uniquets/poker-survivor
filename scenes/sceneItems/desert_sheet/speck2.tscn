@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://des04d3f2995157"]
+
+[ext_resource type="Texture2D" uid="uid://djs6e5ws5ynrg" path="res://assets/sprites/scene/荒漠素材.png" id="1_tex"]
+
+[node name="speck2" type="Sprite2D"]
+texture = ExtResource("1_tex")
+region_enabled = true
+region_rect = Rect2(2241, 165, 17, 34)

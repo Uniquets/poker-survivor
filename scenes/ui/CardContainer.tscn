@@ -1,16 +1,13 @@
 [gd_scene format=3 uid="uid://el34568aa012"]
 
-[node name="CardContainer" type="HBoxContainer" unique_id=1197492433]
-layout_direction = 2
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_right = 100.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
+[ext_resource type="PackedScene" uid="uid://bk1234568aa0" path="res://scenes/ui/Card.tscn" id="1_0lr3n"]
+
+[node name="CardContainer" type="HBoxContainer" unique_id=2006711664]
 theme_override_constants/separation = 120
 alignment = 1
+
+[node name="Card" parent="." unique_id=1470266083 instance=ExtResource("1_0lr3n")]
+layout_mode = 2
+
+[node name="Card2" parent="." unique_id=2061430260 instance=ExtResource("1_0lr3n")]
+layout_mode = 2

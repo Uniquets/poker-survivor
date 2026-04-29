@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://bftvcfkwkgkiq"]
+
+[ext_resource type="Texture2D" uid="uid://dolw6jpblpe1k" path="res://assets/sprites/combat/爆炸序列帧.png" id="1_tt64l"]
+[ext_resource type="Script" path="res://scripts/combat/boom_vfx.gd" id="2_boom_vfx"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bq033"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(0, 0, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kyiju"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(597, 0, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_50dgp"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(1194, 0, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3jsk7"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(0, 600, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pn3ku"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(597, 600, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hpjw2"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(1194, 600, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fbhv4"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(0, 1200, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gu4jn"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(597, 1200, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3yg1b"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(1194, 1200, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m10up"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(0, 1800, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fpylw"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(597, 1800, 597, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dtqia"]
+atlas = ExtResource("1_tt64l")
+region = Rect2(1194, 1800, 597, 600)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bkp0q"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bq033")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kyiju")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_50dgp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3jsk7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pn3ku")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hpjw2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fbhv4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gu4jn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3yg1b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m10up")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fpylw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dtqia")
+}],
+"loop": false,
+"name": &"default",
+"speed": 30.0
+}]
+
+[node name="BoomHitVfx" type="AnimatedSprite2D" unique_id=162269028]
+z_index = 4
+script = ExtResource("2_boom_vfx")
+sprite_frames = SubResource("SpriteFrames_bkp0q")
+centered = true

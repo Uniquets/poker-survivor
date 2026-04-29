@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CardDrawProbabilityConfig" format=3 uid="uid://suqlyqntxy3a"]
+
+[ext_resource type="Script" uid="uid://d1nbnmjgbm6uj" path="res://scripts/core/card_draw_probability_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+levels_per_segment = 5
+rarity_tier_max_strength = PackedInt32Array(4, 7, 10, 14)
+segment_base_rarity_percent = Array[Vector4]([Vector4(70, 20, 8, 2), Vector4(60, 22, 13, 5), Vector4(50, 25, 15, 10), Vector4(40, 27, 18, 15), Vector4(35, 30, 20, 15), Vector4(30, 25, 25, 20), Vector4(25, 23, 27, 25), Vector4(20, 20, 30, 30), Vector4(15, 18, 32, 35)])

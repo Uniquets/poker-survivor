@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://be2x8w2rlimb5"]
+
+[ext_resource type="Script" uid="uid://dwu2y80iuwprv" path="res://scripts/combat/projectile.gd" id="1_proj"]
+[ext_resource type="Script" uid="uid://jqva24rw84sf" path="res://scripts/combat/combat_hitbox_2d.gd" id="2_hitbox"]
+[ext_resource type="Texture2D" uid="uid://b1ceft3qxkvqv" path="res://assets/sprites/card/投射物卡牌.png" id="3_card_tex"]
+[ext_resource type="PackedScene" uid="uid://bept2hboxschc" path="res://scenes/vfx/Rank2ProjectileTrail.tscn" id="4_trail"]
+[ext_resource type="Script" uid="uid://cjippbu6wa8ed" path="res://scripts/combat/sprite_visual_deformation.gd" id="5_spin"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_volley_card"]
+atlas = ExtResource("3_card_tex")
+region = Rect2(139, 466, 95, 139)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_volley_card"]
+radius = 6.0
+height = 26.0
+
+[node name="ParallelStraightCardProjectile" type="Node2D" unique_id=733220974]
+script = ExtResource("1_proj")
+speed = 1000.0
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=684443971]
+rotation = 1.5707964
+scale = Vector2(0.2, 0.2)
+texture = SubResource("AtlasTexture_volley_card")
+script = ExtResource("5_spin")
+deform_kind = 1
+spin_radians_per_second = 60.0
+randomize_start_phase = false
+
+[node name="Rank2ProjectileTrail" parent="." unique_id=1158051935 instance=ExtResource("4_trail")]
+
+[node name="HitShape" type="CollisionShape2D" parent="." unique_id=1425582259]
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_volley_card")
+
+[node name="CombatHitbox2D" type="Area2D" parent="." unique_id=2114395970]
+collision_layer = 8
+collision_mask = 16
+monitorable = false
+script = ExtResource("2_hitbox")
+hit_collision_shape = NodePath("../HitShape")

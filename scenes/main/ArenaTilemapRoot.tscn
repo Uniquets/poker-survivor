@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dnsfe35exs84u"]
+
+[ext_resource type="Script" uid="uid://7tgba3h08yj5" path="res://scripts/combat/arena_tilemap_root.gd" id="1_script"]
+[ext_resource type="TileSet" uid="uid://b8d0kvu0q21n1" path="res://tilesets/dungeon_arena.tres" id="2_tileset"]
+
+[node name="ArenaTilemapRoot" type="Node2D" unique_id=655336994]
+z_index = -100
+script = ExtResource("1_script")
+fill_ground_on_ready = false
+cell_size_px = 58
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=1319133327]
+tile_set = ExtResource("2_tileset")
+
+[node name="Walls" type="TileMapLayer" parent="." unique_id=369729062]
+z_index = 1
+tile_set = ExtResource("2_tileset")

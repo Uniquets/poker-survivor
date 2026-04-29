@@ -1,50 +1,127 @@
 [gd_scene format=3 uid="uid://cioyd4a05orja"]
 
 [ext_resource type="Script" uid="uid://b4bypauawi0fo" path="res://scripts/combat/run_scene.gd" id="1_w7q4f"]
-[ext_resource type="PackedScene" uid="uid://d4m25gbsqdmh1" path="res://scenes/enemies/Enemy.tscn" id="2_630kg"]
-[ext_resource type="Script" uid="uid://bsctrdnr2e3j0" path="res://scripts/combat/player.gd" id="3_hyatr"]
+[ext_resource type="PackedScene" uid="uid://3iw2n0vnvkqd" path="res://scenes/player/joker.tscn" id="2_iqp2g"]
+[ext_resource type="PackedScene" uid="uid://dnsfe35exs84u" path="res://scenes/main/ArenaTilemapRoot.tscn" id="3_arena"]
+[ext_resource type="PackedScene" uid="uid://hfnulikio1lu" path="res://scenes/main/DungeonStripEnvironment.tscn" id="3_strip"]
 [ext_resource type="Script" uid="uid://c37d4obentyn3" path="res://scripts/combat/enemy_manager.gd" id="4_u31j7"]
 [ext_resource type="Script" uid="uid://d2lehupgnobpi" path="res://scripts/combat/auto_attack_system.gd" id="5_kj0tq"]
+[ext_resource type="PackedScene" uid="uid://1gn4id4wba2f" path="res://scenes/enemies/skelen.tscn" id="6_iqp2g"]
 [ext_resource type="Script" uid="uid://cmbvtx8rnsqof" path="res://scripts/cards/card_runtime.gd" id="7_cardruntime"]
 [ext_resource type="PackedScene" uid="uid://bk2124e281tii" path="res://scenes/ui/CardHandUI.tscn" id="8_cardhandui"]
-[ext_resource type="PackedScene" uid="uid://ck2124e281tii" path="res://scenes/ui/CardSelectUI.tscn" id="9_cardselectui"]
-[ext_resource type="PackedScene" uid="uid://di0h8xybcel3e" path="res://scenes/ui/HandSortPanel.tscn" id="10_handsort"]
-[ext_resource type="PackedScene" path="res://scenes/ui/TestMenuPanel.tscn" id="11_testmenu"]
+[ext_resource type="Texture2D" uid="uid://causp743ccxim" path="res://assets/sprites/UI/上方UI.png" id="10_ui_top"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_q3y8k"]
-radius = 14.0
+[sub_resource type="AtlasTexture" id="atlas_top_portrait"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(24, 33, 146, 138)
+filter_clip = true
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_bg"]
-bg_color = Color(0.09, 0.1, 0.14, 0.9)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="AtlasTexture" id="atlas_top_frame"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(186, 38, 121, 130)
+filter_clip = true
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
-bg_color = Color(0.2, 0.9, 0.35, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_jdj7i"]
+load_path = "res://.godot/imported/上方UI.png-226f9cd97f6e4c88be8154a04100a0d8.ctex"
+
+[sub_resource type="AtlasTexture" id="atlas_mp_track"]
+atlas = SubResource("CompressedTexture2D_jdj7i")
+region = Rect2(430, 164, 351, 42)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="atlas_mp_fill"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(433, 223, 346, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="atlas_buff_slot"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(89, 500, 47, 57)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o448d"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(430, 42, 351, 42)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jo31y"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(432, 101, 347, 36)
+
+[sub_resource type="AtlasTexture" id="atlas_hp_icon"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(358, 39, 58, 53)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jkxqr"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(155, 503, 253, 42)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jdj7i"]
+resource_local_to_scene = true
+atlas = ExtResource("10_ui_top")
+region = Rect2(156, 565, 249, 41)
+filter_clip = true
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_iqp2g"]
+load_path = "res://.godot/imported/上方UI.png-226f9cd97f6e4c88be8154a04100a0d8.ctex"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iqp2g"]
+atlas = SubResource("CompressedTexture2D_iqp2g")
+region = Rect2(89, 500, 47, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_wave_title"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(1007, 203.95866, 466.14868, 61.15703)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="atlas_wave_track"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(160, 361, 790, 42)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0wsao"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(163, 428, 783, 35)
+
+[sub_resource type="AtlasTexture" id="atlas_icon_gold"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(1114, 316, 64, 67)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="atlas_icon_skull_kill"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(1116, 419, 61, 71)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="atlas_pause_btn"]
+atlas = ExtResource("10_ui_top")
+region = Rect2(1371, 310, 97, 100)
+filter_clip = true
 
 [node name="RunScene" type="Node2D" unique_id=1680317344]
 script = ExtResource("1_w7q4f")
 enable_test_functions = true
+player_scene = ExtResource("2_iqp2g")
+
+[node name="ArenaTilemapRoot" parent="." unique_id=812976506 instance=ExtResource("3_arena")]
+visible = false
+
+[node name="DungeonStripEnvironment" parent="." unique_id=669185837 instance=ExtResource("3_strip")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=758246544]
-position = Vector2(640, 360)
+position = Vector2(957.5, 660)
 
-[node name="Player" type="CharacterBody2D" parent="." unique_id=288374542]
-position = Vector2(640, 360)
-script = ExtResource("3_hyatr")
+[node name="BattleUnits" type="Node2D" parent="." unique_id=2100010001]
+y_sort_enabled = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1224804788]
-shape = SubResource("CircleShape2D_q3y8k")
+[node name="PlayerSpawn" type="Marker2D" parent="BattleUnits" unique_id=2100010002]
+position = Vector2(957.5, 660)
 
 [node name="EnemyManager" type="Node" parent="." unique_id=1208270822]
 script = ExtResource("4_u31j7")
-enemy_scene = ExtResource("2_630kg")
+enemy_scene = ExtResource("6_iqp2g")
 
 [node name="CardRuntime" type="Node" parent="." unique_id=1289256394]
 script = ExtResource("7_cardruntime")
@@ -54,31 +131,541 @@ script = ExtResource("5_kj0tq")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=505467996]
 
-[node name="HealthBar" type="ProgressBar" parent="HUD" unique_id=1328390801]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 300.0
-offset_bottom = 52.0
-theme_override_styles/background = SubResource("StyleBoxFlat_health_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_health_fill")
-value = 100.0
-show_percentage = false
+[node name="LayoutRoot" type="Control" parent="HUD" unique_id=1997307021]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="HealthText" type="Label" parent="HUD" unique_id=913743965]
-offset_left = 30.0
-offset_top = 22.0
-offset_right = 290.0
-offset_bottom = 50.0
-theme_override_colors/font_color = Color(0.96, 0.98, 1, 1)
-text = "HP 100 / 100"
+[node name="TopLeft" type="Control" parent="HUD/LayoutRoot" unique_id=1317422335]
+z_index = 10
+layout_mode = 1
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 420.0
+offset_bottom = 198.0
+
+[node name="Slot_PlayerPortrait" type="TextureRect" parent="HUD/LayoutRoot/TopLeft" unique_id=71178283]
+layout_mode = 1
+offset_left = 18.0
+offset_top = 16.0
+offset_right = 106.0
+offset_bottom = 104.0
+mouse_filter = 2
+texture = SubResource("atlas_top_portrait")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_PlayerPortraitFrame" type="TextureRect" parent="HUD/LayoutRoot/TopLeft" unique_id=1131472143]
+layout_mode = 1
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 112.0
+offset_bottom = 110.0
+mouse_filter = 2
+texture = SubResource("atlas_top_frame")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ExpBar" type="TextureProgressBar" parent="HUD/LayoutRoot/TopLeft" unique_id=2100029002]
+layout_mode = 1
+offset_left = 116.0
+offset_top = 12.0
+offset_right = 462.0
+offset_bottom = 48.0
+scale = Vector2(0.7, 0.7)
+mouse_filter = 2
+max_value = 10.0
+texture_under = SubResource("atlas_mp_track")
+texture_progress = SubResource("atlas_mp_fill")
+
+[node name="LevelLabel" type="Label" parent="HUD/LayoutRoot/TopLeft/ExpBar" unique_id=2100029001]
+layout_mode = 1
+offset_left = 5.714292
+offset_top = 1.4285717
+offset_right = 55.714275
+offset_bottom = 32.428574
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.05, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 22
+text = "LV.1"
+vertical_alignment = 1
+
+[node name="BuffRow" type="HBoxContainer" parent="HUD/LayoutRoot/TopLeft" unique_id=2092970143]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -42.0
+offset_right = -8.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Slot_Buff01" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=1072413271]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff02" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=672760387]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff03" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=2117067502]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff04" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=1556848971]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff05" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=943986620]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff06" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=1525309825]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff07" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=904609626]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot_Buff08" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/BuffRow" unique_id=1888951150]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_buff_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthBarCT" type="Control" parent="HUD/LayoutRoot/TopLeft" unique_id=941442072]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HealthText" type="Label" parent="HUD/LayoutRoot/TopLeft/HealthBarCT" unique_id=913743965]
+z_index = 1
+layout_mode = 1
+offset_left = 158.0
+offset_top = 47.0
+offset_right = 225.0
+offset_bottom = 77.0
+theme_override_colors/font_color = Color(0.98, 0.98, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.06, 0.06, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 21
+text = "68 / 88"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CardSelectUI" parent="HUD" unique_id=1546165101 instance=ExtResource("9_cardselectui")]
+[node name="HealthBar" type="TextureProgressBar" parent="HUD/LayoutRoot/TopLeft/HealthBarCT" unique_id=1328390801]
+layout_mode = 1
+offset_left = 133.0
+offset_top = 47.0
+offset_right = 484.0
+offset_bottom = 89.0
+scale = Vector2(0.8, 0.8)
+mouse_filter = 2
+value = 100.0
+texture_under = SubResource("AtlasTexture_o448d")
+texture_progress = SubResource("AtlasTexture_jo31y")
 
-[node name="CardHandUI" parent="HUD" unique_id=601139034 instance=ExtResource("8_cardhandui")]
+[node name="Slot_HpIcon" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/HealthBarCT" unique_id=1328390800]
+layout_mode = 1
+offset_left = 115.0
+offset_top = 42.0
+offset_right = 159.0
+offset_bottom = 79.0
+mouse_filter = 2
+texture = SubResource("atlas_hp_icon")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="HandSortPanel" parent="HUD" unique_id=1147562400 instance=ExtResource("10_handsort")]
+[node name="MixCardBarCT" type="Control" parent="HUD/LayoutRoot/TopLeft" unique_id=571727162]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="MixCardBar" type="TextureProgressBar" parent="HUD/LayoutRoot/TopLeft/MixCardBarCT" unique_id=480510942]
+layout_mode = 1
+offset_left = 134.0
+offset_top = 89.00001
+offset_right = 387.0
+offset_bottom = 131.0
+scale = Vector2(0.7, 0.7)
+mouse_filter = 2
+value = 100.0
+texture_under = SubResource("AtlasTexture_jkxqr")
+texture_progress = SubResource("AtlasTexture_jdj7i")
+
+[node name="Slot_MixIcon" type="TextureRect" parent="HUD/LayoutRoot/TopLeft/MixCardBarCT" unique_id=559883243]
+layout_mode = 0
+offset_left = 114.0
+offset_top = 81.0
+offset_right = 157.0
+offset_bottom = 124.0
+texture = SubResource("AtlasTexture_iqp2g")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TopCenter" type="Control" parent="HUD/LayoutRoot" unique_id=681434452]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 360.0
+offset_top = 8.0
+offset_right = -360.0
+offset_bottom = 124.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Slot_WaveTitleArt" type="TextureRect" parent="HUD/LayoutRoot/TopCenter" unique_id=440476242]
 visible = false
+z_index = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -176.0
+offset_top = -26.0
+offset_right = 176.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("atlas_wave_title")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="TestMenuPanel" parent="HUD" unique_id=1995641403 instance=ExtResource("11_testmenu")]
+[node name="Label_WaveTimer" type="Label" parent="HUD/LayoutRoot/TopCenter" unique_id=1141998948]
+z_index = 3
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = -58.0
+offset_right = 74.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.96, 0.86, 0.42, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.06, 0.04, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 28
+text = "08:45"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label_WaveTitle" type="Label" parent="HUD/LayoutRoot/TopCenter" unique_id=357225353]
+z_index = 3
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -139.0
+offset_top = -27.0
+offset_right = 141.0
+offset_bottom = 17.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.96, 0.86, 0.38, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.06, 0.04, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
+text = "第 1 波"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WaveProgressBar" type="TextureProgressBar" parent="HUD/LayoutRoot/TopCenter" unique_id=741123442]
+z_index = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -276.0
+offset_top = -37.0
+offset_right = 514.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(0.7, 0.7)
+mouse_filter = 2
+value = 35.0
+texture_under = SubResource("atlas_wave_track")
+texture_progress = SubResource("AtlasTexture_0wsao")
+tint_progress = Color(0.55, 0.35, 0.95, 1)
+
+[node name="TopRight" type="Control" parent="HUD/LayoutRoot" unique_id=386836386]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -345.0
+offset_right = -1.0
+offset_bottom = 108.0
+grow_horizontal = 0
+
+[node name="ResourceVBox" type="VBoxContainer" parent="HUD/LayoutRoot/TopRight" unique_id=1813327044]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 10.0
+offset_right = -166.0
+offset_bottom = 94.0
+grow_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="RowGold" type="HBoxContainer" parent="HUD/LayoutRoot/TopRight/ResourceVBox" unique_id=492097324]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot_IconGold" type="TextureRect" parent="HUD/LayoutRoot/TopRight/ResourceVBox/RowGold" unique_id=168585035]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_icon_gold")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label_ResourceGold" type="Label" parent="HUD/LayoutRoot/TopRight/ResourceVBox/RowGold" unique_id=378479580]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.98, 0.86, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 22
+text = "352"
+
+[node name="RowSkull" type="HBoxContainer" parent="HUD/LayoutRoot/TopRight/ResourceVBox" unique_id=898621930]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot_IconSkull" type="TextureRect" parent="HUD/LayoutRoot/TopRight/ResourceVBox/RowSkull" unique_id=526038758]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("atlas_icon_skull_kill")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label_ResourceSkull" type="Label" parent="HUD/LayoutRoot/TopRight/ResourceVBox/RowSkull" unique_id=1685210003]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.94, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.06, 0.12, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 22
+text = "1523"
+
+[node name="Slot_PauseButton" type="TextureButton" parent="HUD/LayoutRoot/TopRight" unique_id=665743801]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -65.0
+offset_top = -99.0
+offset_right = -13.0
+offset_bottom = -47.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = SubResource("atlas_pause_btn")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BottomCenter" type="Control" parent="HUD/LayoutRoot" unique_id=1162757590]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -720.0
+offset_top = -288.0
+offset_right = 720.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Slot_HandBackdrop" type="TextureRect" parent="HUD/LayoutRoot/BottomCenter" unique_id=1316299616]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardHandUI" parent="HUD/LayoutRoot/BottomCenter" unique_id=601139034 instance=ExtResource("8_cardhandui")]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+offset_left = 12.0
+offset_top = 24.0
+offset_right = -12.0
+offset_bottom = -8.0
+grow_vertical = 2
+
+[node name="BottomRight" type="Control" parent="HUD/LayoutRoot" unique_id=249745664]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -260.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Slot_BottomRightPanelBg" type="TextureRect" parent="HUD/LayoutRoot/BottomRight" unique_id=1990848683]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SuitStatsVBox" type="VBoxContainer" parent="HUD/LayoutRoot/BottomRight" unique_id=370343146]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="RowSuitSpade" type="HBoxContainer" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox" unique_id=1741784805]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot_IconSuitSpade" type="TextureRect" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitSpade" unique_id=1639016467]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label_SuitStatSpade" type="Label" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitSpade" unique_id=826865340]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "0 / 6"
+
+[node name="RowSuitHeart" type="HBoxContainer" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox" unique_id=1080630613]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot_IconSuitHeart" type="TextureRect" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitHeart" unique_id=2078837061]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label_SuitStatHeart" type="Label" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitHeart" unique_id=933830315]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "0 / 6"
+
+[node name="RowSuitClub" type="HBoxContainer" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox" unique_id=1479063774]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot_IconSuitClub" type="TextureRect" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitClub" unique_id=1194585492]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label_SuitStatClub" type="Label" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitClub" unique_id=602471534]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "0 / 6"
+
+[node name="RowSuitDiamond" type="HBoxContainer" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox" unique_id=814083245]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Slot_IconSuitDiamond" type="TextureRect" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitDiamond" unique_id=934175436]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label_SuitStatDiamond" type="Label" parent="HUD/LayoutRoot/BottomRight/SuitStatsVBox/RowSuitDiamond" unique_id=573101797]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "0 / 6"

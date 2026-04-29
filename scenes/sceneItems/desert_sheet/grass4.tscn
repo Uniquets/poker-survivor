@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://des808d08183af8"]
+
+[ext_resource type="Texture2D" uid="uid://djs6e5ws5ynrg" path="res://assets/sprites/scene/荒漠素材.png" id="1_tex"]
+
+[node name="grass4" type="Sprite2D"]
+texture = ExtResource("1_tex")
+region_enabled = true
+region_rect = Rect2(1137, 1161, 90, 89)

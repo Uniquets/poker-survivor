@@ -6,15 +6,17 @@ var _world_layer: Node2D = null
 
 ## 飘字默认字号（像素）
 const _FLOAT_FONT_SIZE: int = 24
-## 飘字默认存活时间（秒）
-const _FLOAT_DURATION: float = 2.0
-## 飘字默认上移距离（像素）
-const _FLOAT_MOVE_PIXELS: float = 40.0
+## 飘字默认存活时间（秒）；与上移 tween 共用，越短消散越快
+const _FLOAT_DURATION: float = 0.75
+## 飘字默认上移距离（像素）；时长缩短后略增位移保持可见动感
+const _FLOAT_MOVE_PIXELS: float = 44.0
 
 ## 伤害飘字颜色
 const _FLOAT_COLOR_DAMAGE: Color = Color(1, 0.3, 0.3)
 ## 治疗飘字颜色
 const _FLOAT_COLOR_HEAL: Color = Color(0.35, 0.95, 0.45)
+## 飘字根 `Node2D` 的 `z_index`，高于默认单位层，避免被 `BattleUnits` 内 Y-sort 精灵盖住（仍为世界坐标）
+const _FLOAT_WORLD_Z_INDEX: int = 128
 
 
 ## 注册世界空间工具节点的挂载点（与 Camera2D 同层变换）
@@ -64,7 +66,7 @@ func _resolve_world_parent() -> Node:
 	return null
 
 
-## 在场景树中生成 Node2D + Label，上移并淡出后回收
+## 在场景树中生成 `Node2D` + `Label`（世界坐标），用较高 `z_index` 叠在战场单位之上
 func _world_float_spawn(pos: Vector2, text: String, color: Color, font_size: int, duration_seconds: float, move_pixels: float) -> void:
 	var parent := _resolve_world_parent()
 	if parent == null:
@@ -72,6 +74,8 @@ func _world_float_spawn(pos: Vector2, text: String, color: Color, font_size: int
 
 	var effect := Node2D.new()
 	effect.global_position = pos
+	effect.z_index = _FLOAT_WORLD_Z_INDEX
+	effect.z_as_relative = false
 	parent.add_child(effect)
 
 	var label := Label.new()

@@ -3,18 +3,32 @@
 [ext_resource type="Script" uid="uid://5i20nk5k0bm4" path="res://scripts/ui/card_hand_ui.gd" id="1_4q234"]
 [ext_resource type="PackedScene" uid="uid://bk1234568aa0" path="res://scenes/ui/Card.tscn" id="2_card"]
 
-[node name="CardHandUI" type="HBoxContainer" unique_id=601139034]
+[node name="CardHandUI" type="Control" unique_id=601139034]
+layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -400.0
-offset_top = -120.0
-offset_right = 400.0
-offset_bottom = -20.0
+offset_left = -520.0
+offset_top = -160.0
+offset_right = 520.0
+offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 0
-pivot_offset_ratio = Vector2(50, -50)
+mouse_filter = 2
 script = ExtResource("1_4q234")
 card_scene = ExtResource("2_card")
+fan_radius_min_px = 380.0
+fan_radius_max_px = 1200.0
+fan_arc_half_deg = 18.5
+fan_arc_blend_full_at_cards = 20
+dock_hand_shift_y_hover_px = 80.0
+dock_hover_raise_px = 103.0
+
+[node name="HandFan" type="Control" parent="." unique_id=1002273796]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 280.0
+mouse_filter = 2

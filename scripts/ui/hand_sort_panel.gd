@@ -7,18 +7,23 @@ signal sort_saved
 ## 用户取消或点遮罩关闭面板时发出
 signal sort_cancelled
 
-## 槽位最小宽度（像素）
-const _MIN_SLOT_W := 44
-## 槽位最大宽度（像素）
-const _MAX_SLOT_W := 86
-## 槽位高度（像素）
-const _SLOT_H := 132
+## 单槽宽度（像素）；**固定**，不随排布压缩（与手牌栏一致，靠负间距重叠）
+const _SLOT_W := 160
+## 槽位高度（像素）；`Card.tscn` 须 `_configure_card_*` 置 scale=1 后铺满槽（与根节点 `custom_minimum_size` 一致）
+const _SLOT_H := 240
+## 牌不多、条带未顶到视口宽度上限时使用的正间距（像素）
+const _DEFAULT_SEP_POSITIVE := 18
+## 面板左右与 `Slots` 条带之间的额外占用（内容边距等），用于从视口 70% 反推条带最大宽度
+const _PANEL_STRIP_OUTSIDE_X := 96.0
+## 面板最小高度（牌条 + 标题/说明/按钮区；牌条高与 `_SLOT_H` 同步）
+const _PANEL_MIN_HEIGHT := 420.0
 ## 拖拽浮层 z_index
 const _FLOAT_Z := 120
 ## 插入虚影透明度系数
 const _GHOST_ALPHA := 0.26
 
 @onready var _dim: ColorRect = $Dim
+@onready var _panel: PanelContainer = $Center/Panel
 @onready var _slots: HBoxContainer = $Center/Panel/VBox/Slots
 @onready var _btn_save: Button = $Center/Panel/VBox/Actions/SaveButton
 @onready var _btn_cancel: Button = $Center/Panel/VBox/Actions/CancelButton
@@ -29,6 +34,12 @@ var _card_runtime: CardRuntime = null
 var _working: Array = []
 ## 槽内 Card 场景
 @export var card_scene: PackedScene = preload("res://scenes/ui/Card.tscn")
+## 排序面板最大宽度占视口宽度的比例；顶格后**只调间距（含负间距重叠）**，不压窄单槽
+@export var max_panel_width_ratio: float = 0.7
+## 槽间 separation 下限（负得越多重叠越大），与手牌栏场景中间距为负、左右重叠的思路一致
+@export var sort_separation_min: int = -96
+## 槽间 separation 上限（正间距封顶，避免牌少时间距过大）
+@export var sort_separation_max: int = 32
 
 ## 是否正在拖拽
 var _dragging: bool = false
@@ -36,14 +47,47 @@ var _dragging: bool = false
 var _drag_from: int = -1
 ## 按下点相对牌左上角的偏移（全局空间用）
 var _grab_offset: Vector2 = Vector2.ZERO
-## 当前计算的槽宽高
-var _slot_size: Vector2 = Vector2(_MAX_SLOT_W, _SLOT_H)
+## 当前计算的槽宽高（宽恒为 `_SLOT_W`）
+var _slot_size: Vector2 = Vector2(_SLOT_W, _SLOT_H)
 ## 跟随鼠标的浮层牌
 var _floating: Card = null
 ## 插入位置预览牌
 var _ghost: Card = null
 ## 上次计算的插入缝下标（用于减少刷新）
 var _last_gap: int = -1
+## 当前条带 `HBox` 的 separation，供首尾插入缝 ghost 定位（gap 0 / gap n 不能用条带整矩形边线）
+var _strip_separation: int = 8
+
+
+## 槽内牌：父节点为窄槽 `Control`，`FULL_RECT` 铺满槽；须先 scale=1
+func _configure_card_in_slot(c: Card) -> void:
+	if c == null:
+		return
+	c.scale = Vector2.ONE
+	c.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.offset_left = 0.0
+	c.offset_top = 0.0
+	c.offset_right = 0.0
+	c.offset_bottom = 0.0
+
+
+## 拖拽浮层 / 插入虚影：父节点是全屏 `HandSortPanel`，若误用 `FULL_RECT` 会铺满整屏导致「拖拽时牌突然变大」
+func _configure_card_overlay(c: Card, px_size: Vector2) -> void:
+	if c == null:
+		return
+	c.scale = Vector2.ONE
+	c.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	c.anchor_left = 0.0
+	c.anchor_top = 0.0
+	c.anchor_right = 0.0
+	c.anchor_bottom = 0.0
+	c.offset_left = 0.0
+	c.offset_top = 0.0
+	c.offset_right = 0.0
+	c.offset_bottom = 0.0
+	c.custom_minimum_size = px_size
+	c.size = px_size
+	c.pivot_offset = Vector2.ZERO
 
 
 ## 初始隐藏并联按钮与遮罩
@@ -124,60 +168,69 @@ func _on_dim_gui_input(event: InputEvent) -> void:
 			_on_cancel_pressed()
 
 
-## 按可用宽度计算 separation 与单槽宽高
+## 固定单槽宽高；条带宽度 = n×槽宽 + (n−1)×separation（separation 可为负，与手牌栏重叠同理）；顶到视口比例上限后只把 separation 算负
 func _apply_strip_layout() -> void:
 	var n: int = _working.size()
 	if n == 0 or _slots == null:
 		return
-	var inner: float = _slots.size.x
-	if inner < 80.0:
-		var p := _slots.get_parent() as Control
-		if p:
-			inner = max(80.0, p.size.x - 8.0)
-		else:
-			inner = 560.0
-	var sep: int = 8
-	var w: int = _MAX_SLOT_W
+	var vw: float = get_viewport().get_visible_rect().size.x
+	var cap_outer: float = maxf(120.0, vw * clampf(max_panel_width_ratio, 0.2, 1.0))
+	var inner_max_strip: float = maxf(40.0, cap_outer - _PANEL_STRIP_OUTSIDE_X)
+	var fixed_w: int = _SLOT_W
+	var sep: int = 0
 	if n == 1:
-		w = clampi(int(inner), _MIN_SLOT_W, _MAX_SLOT_W)
+		sep = 0
 	else:
-		for try_sep in range(24, 1, -1):
-			sep = try_sep
-			var avail_for_cards: float = inner - float((n - 1) * sep)
-			w = int(floor(avail_for_cards / float(n)))
-			w = clampi(w, _MIN_SLOT_W, _MAX_SLOT_W)
-			if float(n * w + (n - 1) * sep) <= inner + 0.5:
-				break
-		while n * w + (n - 1) * sep > int(inner) and sep > 2:
-			sep -= 1
-		while n * w + (n - 1) * sep > int(inner) and w > _MIN_SLOT_W:
-			w -= 1
+		var natural_strip: float = float(n * fixed_w) + float(n - 1) * float(_DEFAULT_SEP_POSITIVE)
+		if natural_strip <= inner_max_strip:
+			sep = clampi(_DEFAULT_SEP_POSITIVE, sort_separation_min, sort_separation_max)
+		else:
+			var sf: float = (inner_max_strip - float(n * fixed_w)) / float(n - 1)
+			sep = int(floor(sf))
+			sep = clampi(sep, sort_separation_min, sort_separation_max)
+	_strip_separation = sep
 	_slots.add_theme_constant_override("separation", sep)
-	_slot_size = Vector2(float(w), float(_SLOT_H))
+	_slot_size = Vector2(float(fixed_w), float(_SLOT_H))
+	var strip_w: float = float(n * fixed_w) + float(max(0, n - 1)) * float(sep)
+	var outer_w: float = strip_w + _PANEL_STRIP_OUTSIDE_X
+	outer_w = minf(outer_w, cap_outer)
+	if _panel != null:
+		_panel.custom_minimum_size = Vector2(outer_w, _PANEL_MIN_HEIGHT)
 	for ch in _slots.get_children():
 		if ch is Control:
 			var slot_c := ch as Control
 			slot_c.custom_minimum_size = _slot_size
 			for grand in slot_c.get_children():
 				if grand is Card:
-					var gc := grand as Control
+					var gc := grand as Card
+					_configure_card_in_slot(gc)
 					gc.custom_minimum_size = _slot_size
 					gc.size = _slot_size
 
 
-## 全局坐标映射到插入缝 0..n（越界返回 -1）
+## 全局坐标映射到插入缝 0..n（越界返回 -1）；负间距重叠时条带非均匀分格，按相邻插入缝中心的中点划分
 func _gap_index_at_global(mg: Vector2) -> int:
 	var n: int = _working.size()
 	if n == 0:
 		return -1
 	var base := _slots.get_global_rect()
-	var r := Rect2(base.position - Vector2(14, 56), base.size + Vector2(28, 112))
+	var r := Rect2(base.position - Vector2(20, 56), base.size + Vector2(40, 112))
 	if not r.has_point(mg):
 		return -1
-	var relx: float = mg.x - base.position.x
-	var strip_w: float = max(base.size.x, 1.0)
-	var bin: float = relx / strip_w * float(n + 1)
-	return clampi(int(floor(bin)), 0, n)
+	var hx: float = mg.x
+	if n == 1:
+		var c0: float = _gap_center_x_global(0)
+		var c1: float = _gap_center_x_global(1)
+		var t: float = (c0 + c1) * 0.5
+		return 0 if hx < t else 1
+	var centers: Array[float] = []
+	for g in range(n + 1):
+		centers.append(_gap_center_x_global(g))
+	for g in range(n):
+		var t_mid: float = (centers[g] + centers[g + 1]) * 0.5
+		if hx < t_mid:
+			return g
+	return n
 
 
 ## 将 from_i 元素移动到插入缝 gap（规则与 remove+insert 一致）
@@ -202,12 +255,12 @@ func _rebuild_slots() -> void:
 		var slot_root := Control.new()
 		slot_root.name = "Slot%d" % i
 		slot_root.custom_minimum_size = _slot_size
+		slot_root.clip_contents = true
 		var c := card_scene.instantiate() as Card
 		if c:
-			c.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			_configure_card_in_slot(c)
 			c.custom_minimum_size = _slot_size
 			c.size = _slot_size
-			c.position = Vector2.ZERO
 			c.set_card(_working[i] as CardResource)
 			c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			slot_root.add_child(c)
@@ -241,15 +294,19 @@ func _begin_drag(from_idx: int, global_press: Vector2) -> void:
 	_dragging = true
 	_drag_from = from_idx
 	var slot := _slots.get_child(from_idx) as Control
-	var card := slot.get_child(0) as Card
+	var card: Card = null
+	for sub in slot.get_children():
+		if sub is Card:
+			card = sub as Card
+			break
+	if card == null:
+		return
 	var cr := card.get_global_rect()
 	_grab_offset = global_press - cr.position
 	_floating = card_scene.instantiate() as Card
+	_configure_card_overlay(_floating, _slot_size)
 	_floating.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_floating.set_card(_working[from_idx] as CardResource)
-	_floating.custom_minimum_size = _slot_size
-	_floating.size = _slot_size
-	_floating.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_floating.z_index = _FLOAT_Z
 	_floating.z_as_relative = false
 	add_child(_floating)
@@ -318,15 +375,12 @@ func _update_ghost_at_gap(gap: int) -> void:
 		return
 	if not is_instance_valid(_ghost):
 		_ghost = card_scene.instantiate() as Card
+		_configure_card_overlay(_ghost, _slot_size)
 		_ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_ghost.custom_minimum_size = _slot_size
-		_ghost.size = _slot_size
-		_ghost.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		_ghost.z_index = _FLOAT_Z - 1
 		_ghost.z_as_relative = false
 		add_child(_ghost)
-	_ghost.custom_minimum_size = _slot_size
-	_ghost.size = _slot_size
+	_configure_card_overlay(_ghost, _slot_size)
 	_ghost.set_card(_working[_drag_from] as CardResource)
 	_ghost.modulate = Color(1, 1, 1, _GHOST_ALPHA)
 	_ghost.visible = true
@@ -335,16 +389,18 @@ func _update_ghost_at_gap(gap: int) -> void:
 	_ghost.global_position = Vector2(x_center - _ghost.size.x * 0.5, y_top)
 
 
-## 插入缝中心的全局 X（用于摆 ghost）
+## 插入缝中心的全局 X（用于摆 ghost）；gap 0 / n 须在首槽外侧、尾槽外侧各留半格间距，避免贴边错位
 func _gap_center_x_global(gap: int) -> float:
-	var r := _slots.get_global_rect()
 	var n := _working.size()
 	if n == 0:
-		return r.get_center().x
-	if gap <= 0:
-		return r.position.x
-	if gap >= n:
-		return r.position.x + r.size.x
+		return _slots.get_global_rect().get_center().x
+	var sep := float(_strip_separation)
+	if gap == 0:
+		var s0 := _slots.get_child(0) as Control
+		return s0.get_global_rect().position.x - sep * 0.5
+	if gap == n:
+		var sn := _slots.get_child(n - 1) as Control
+		return sn.get_global_rect().end.x + sep * 0.5
 	var left := (_slots.get_child(gap - 1) as Control).get_global_rect().end.x
 	var right := (_slots.get_child(gap) as Control).get_global_rect().position.x
 	return (left + right) * 0.5

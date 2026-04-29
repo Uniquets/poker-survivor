@@ -63,7 +63,7 @@
 | 6 | `get_editor_errors` | 看运行期报错。 |
 | 7 | `stop_scene` | 结束运行，避免与下一次 `play_scene` 冲突。 |
 
-**本仓库与效果管线相关时**：可让 Agent 在 `play_scene` 后关注控制台或 `get_editor_errors`，并对 `RunScene` / `AutoAttackSystem` / `CardRuntime` 等节点用 `get_game_node_properties` 做抽查；**关键张 §10** 仍以 `docs/测试与进度.md` 中手动用例为准，MCP 用于加速「跑起来 + 看状态」而非替代规则文档。
+**本仓库与效果管线相关时**：可让 Agent 在 `play_scene` 后关注控制台或 `get_editor_errors`，并对 `RunScene` / `AutoAttackSystem` / `CardRuntime` 等节点用 `get_game_node_properties` 做抽查；**同点数专属（2/8/10）管线** 仍以 `docs/测试与进度.md` 中手动用例为准，MCP 用于加速「跑起来 + 看状态」而非替代规则文档。
 
 ### 6.3 局限
 
