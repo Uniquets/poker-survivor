@@ -40,6 +40,39 @@ static func _first_command(plan, kind: int):
 	return null
 
 
+static func _entry_with_spec(spec: Resource) -> PlayShapeEntry:
+	var entry := PlayShapeEntry.new()
+	entry.display_name = "test"
+	entry.effect_spec = spec
+	return entry
+
+
+static func _default_catalog_for_fallback_tests() -> PlayShapeCatalog:
+	var source_cat: PlayShapeCatalog = load("res://config/card_shape_config.tres") as PlayShapeCatalog
+	TestSupport.assert_true(source_cat != null, "shape catalog exists")
+	TestSupport.assert_true(source_cat.default_projectile_scene != null, "catalog default projectile exists")
+	TestSupport.assert_true(source_cat.default_hit_sfx_first != null, "catalog default hit sfx exists")
+	var cat := PlayShapeCatalog.new()
+	cat.default_projectile_scene = source_cat.default_projectile_scene
+	cat.default_fire_sfx = source_cat.default_hit_sfx_first
+	cat.default_hit_sfx_first = source_cat.default_hit_sfx_first
+	cat.default_hit_sfx_pierce = source_cat.default_hit_sfx_first
+	cat.default_hit_sfx_reroute = source_cat.default_hit_sfx_first
+	return cat
+
+
+static func _assemble_entry(entry: PlayShapeEntry, catalog: PlayShapeCatalog, default_entries: Array = []) -> PlayPlan:
+	var plan := PlayPlan.new()
+	PlayShapeEffectAssembler.append_shape_entry_effect_commands(
+		plan,
+		entry,
+		_ctx([_card(4)], "SINGLE"),
+		default_entries,
+		catalog
+	)
+	return plan
+
+
 ## 单张 2 应生成表现相弹道命令。
 static func test_rank2_single_generates_projectile_command() -> void:
 	var plan = _resolve([_card(2)], "SINGLE")
@@ -84,3 +117,49 @@ static func test_non_special_falls_back_to_default_projectile() -> void:
 	var cmd = _first_command(_resolve([_card(4)], "SINGLE"), CmdScript.CmdKind.PROJECTILE_VOLLEY)
 	TestSupport.assert_true(cmd != null, "fallback projectile command")
 	TestSupport.assert_true(cmd.count >= 1, "fallback projectile count")
+
+
+static func test_parallel_spec_uses_catalog_defaults_when_fields_are_missing() -> void:
+	var cat := _default_catalog_for_fallback_tests()
+	var spec := ShapeParallelVolleyEffectSpec.new()
+	spec.projectile_scene = null
+	spec.fire_sfx = null
+	spec.hit_sfx_first = null
+	var cmd = _first_command(
+		_assemble_entry(_entry_with_spec(spec), cat),
+		CmdScript.CmdKind.PROJECTILE_VOLLEY
+	)
+	TestSupport.assert_true(cmd != null, "parallel fallback command")
+	TestSupport.assert_eq(cmd.projectile_scene_override, cat.default_projectile_scene, "parallel projectile fallback")
+	TestSupport.assert_eq(cmd.sfx_fire, cat.default_fire_sfx, "parallel fire sfx fallback")
+	TestSupport.assert_eq(cmd.sfx_hit_first, cat.default_hit_sfx_first, "parallel hit sfx fallback")
+
+
+static func test_waypoint_spec_uses_catalog_defaults_when_fields_are_missing() -> void:
+	var cat := _default_catalog_for_fallback_tests()
+	var spec := ShapeWaypointVolleyEffectSpec.new()
+	spec.waypoint_projectile_scene = null
+	spec.fire_sfx = null
+	spec.hit_sfx_first = null
+	var cmd = _first_command(
+		_assemble_entry(_entry_with_spec(spec), cat),
+		CmdScript.CmdKind.WAYPOINT_VOLLEY
+	)
+	TestSupport.assert_true(cmd != null, "waypoint fallback command")
+	TestSupport.assert_eq(cmd.waypoint_projectile_scene_override, cat.default_projectile_scene, "waypoint projectile fallback")
+	TestSupport.assert_eq(cmd.sfx_fire, cat.default_fire_sfx, "waypoint fire sfx fallback")
+	TestSupport.assert_eq(cmd.sfx_hit_first, cat.default_hit_sfx_first, "waypoint hit sfx fallback")
+
+
+static func test_missing_projectile_scene_without_fallback_skips_command() -> void:
+	var cat := PlayShapeCatalog.new()
+	var parallel_plan := _assemble_entry(_entry_with_spec(ShapeParallelVolleyEffectSpec.new()), cat)
+	var waypoint_plan := _assemble_entry(_entry_with_spec(ShapeWaypointVolleyEffectSpec.new()), cat)
+	TestSupport.assert_eq(parallel_plan.commands.size(), 0, "parallel missing scene command count")
+	TestSupport.assert_eq(waypoint_plan.commands.size(), 0, "waypoint missing scene command count")
+
+
+static func test_unknown_effect_spec_is_ignored_without_command() -> void:
+	var cat := _default_catalog_for_fallback_tests()
+	var plan := _assemble_entry(_entry_with_spec(Resource.new()), cat)
+	TestSupport.assert_eq(plan.commands.size(), 0, "unknown spec command count")

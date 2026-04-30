@@ -45,6 +45,48 @@ static func _resolve_final_shape_sfx(primary: AudioStream, kind: String) -> Audi
 			return null
 
 
+static func _resolve_catalog_resource(default_catalog: Object, field_name: String) -> Resource:
+	if default_catalog != null:
+		var local_value: Resource = default_catalog.get(field_name) as Resource
+		if local_value != null:
+			return local_value
+	var cat: PlayShapeCatalog = GameConfig.PLAY_SHAPE_CATALOG as PlayShapeCatalog
+	if cat == null:
+		return null
+	return cat.get(field_name) as Resource
+
+
+static func _resolve_scene_field(
+	spec: Resource,
+	fallback_spec: Resource,
+	spec_field: String,
+	default_catalog: Object,
+	catalog_field: String
+) -> PackedScene:
+	var scene: PackedScene = spec.get(spec_field) as PackedScene
+	if scene == null and fallback_spec != null:
+		scene = fallback_spec.get(spec_field) as PackedScene
+	if scene == null:
+		scene = _resolve_catalog_resource(default_catalog, catalog_field) as PackedScene
+	return scene
+
+
+static func _resolve_sfx_field(
+	spec: Resource,
+	fallback_spec: Resource,
+	spec_field: String,
+	default_catalog: Object,
+	catalog_field: String,
+	kind: String
+) -> AudioStream:
+	var stream: AudioStream = spec.get(spec_field) as AudioStream
+	if stream == null and fallback_spec != null:
+		stream = fallback_spec.get(spec_field) as AudioStream
+	if stream == null:
+		stream = _resolve_catalog_resource(default_catalog, catalog_field) as AudioStream
+	return _resolve_final_shape_sfx(stream, kind)
+
+
 ## 本步牌 **`CardResource.damage`** 求和（与旧 **`PlayEffectResolver._sum_card_damage`** 语义一致）
 static func _sum_cards_damage(cards: Array) -> int:
 	var t: int = 0
@@ -110,41 +152,33 @@ static func _handle_parallel_spec(
 	plan, spec: Resource, _entry: Object, _ctx, default_entries: Array, default_catalog: Object
 ) -> void:
 	var fb_parallel: Resource = _resolve_fallback_spec(default_entries, _ParallelSpecScript)
-	var proj_scene: PackedScene = spec.get("projectile_scene") as PackedScene
-	if proj_scene == null and fb_parallel != null:
-		proj_scene = fb_parallel.get("projectile_scene") as PackedScene
-	if proj_scene == null and default_catalog != null:
-		proj_scene = default_catalog.get("default_projectile_scene") as PackedScene
-	var binding: bool = bool(spec.get("binding_card_shape_presentation"))
+	var proj_scene: PackedScene = _resolve_scene_field(
+		spec, fb_parallel, "projectile_scene", default_catalog, "default_projectile_scene"
+	)
+	if proj_scene == null:
+		push_warning(
+			"PlayShapeEffectAssembler: PROJECTILE_VOLLEY missing projectile scene | entry=%s"
+			% str(_entry.get("display_name"))
+		)
+		return
 	var use_default_fire: bool = bool(spec.get("binding_use_default_shape_fire_slot"))
-	var fire_stream: AudioStream = spec.get("fire_sfx") as AudioStream
-	if fire_stream == null and fb_parallel != null:
-		fire_stream = fb_parallel.get("fire_sfx") as AudioStream
-	if fire_stream == null and default_catalog != null:
-		fire_stream = default_catalog.get("default_fire_sfx") as AudioStream
+	var fire_stream: AudioStream = _resolve_sfx_field(
+		spec, fb_parallel, "fire_sfx", default_catalog, "default_fire_sfx", "fire"
+	)
 	## 中文：已显式指定预制体时关闭 **`volley_bind_presentation_slots`**，避免 Runner 再用表现槽覆盖 **`projectile_scene_override`**
-	var cmd_use_shape_slots: bool = binding and proj_scene == null
+	var cmd_use_shape_slots: bool = false
 	if fire_stream == null:
 		fire_stream = resolve_projectile_volley_fire_sfx(cmd_use_shape_slots, use_default_fire)
 	fire_stream = _resolve_final_shape_sfx(fire_stream, "fire")
-	var hit_first: AudioStream = spec.get("hit_sfx_first") as AudioStream
-	if hit_first == null and fb_parallel != null:
-		hit_first = fb_parallel.get("hit_sfx_first") as AudioStream
-	if hit_first == null and default_catalog != null:
-		hit_first = default_catalog.get("default_hit_sfx_first") as AudioStream
-	hit_first = _resolve_final_shape_sfx(hit_first, "hit_first")
-	var hit_pierce: AudioStream = spec.get("hit_sfx_pierce") as AudioStream
-	if hit_pierce == null and fb_parallel != null:
-		hit_pierce = fb_parallel.get("hit_sfx_pierce") as AudioStream
-	if hit_pierce == null and default_catalog != null:
-		hit_pierce = default_catalog.get("default_hit_sfx_pierce") as AudioStream
-	hit_pierce = _resolve_final_shape_sfx(hit_pierce, "hit_pierce")
-	var hit_reroute: AudioStream = spec.get("hit_sfx_reroute") as AudioStream
-	if hit_reroute == null and fb_parallel != null:
-		hit_reroute = fb_parallel.get("hit_sfx_reroute") as AudioStream
-	if hit_reroute == null and default_catalog != null:
-		hit_reroute = default_catalog.get("default_hit_sfx_reroute") as AudioStream
-	hit_reroute = _resolve_final_shape_sfx(hit_reroute, "hit_reroute")
+	var hit_first: AudioStream = _resolve_sfx_field(
+		spec, fb_parallel, "hit_sfx_first", default_catalog, "default_hit_sfx_first", "hit_first"
+	)
+	var hit_pierce: AudioStream = _resolve_sfx_field(
+		spec, fb_parallel, "hit_sfx_pierce", default_catalog, "default_hit_sfx_pierce", "hit_pierce"
+	)
+	var hit_reroute: AudioStream = _resolve_sfx_field(
+		spec, fb_parallel, "hit_sfx_reroute", default_catalog, "default_hit_sfx_reroute", "hit_reroute"
+	)
 	var lock_r: float = float(spec.get("lock_query_radius"))
 	if lock_r <= 0.0 and fb_parallel != null:
 		lock_r = float(fb_parallel.get("lock_query_radius"))
@@ -176,37 +210,30 @@ static func _handle_waypoint_spec(
 	plan, spec: Resource, _entry: Object, _ctx, default_entries: Array, default_catalog: Object
 ) -> void:
 	var fb_waypoint: Resource = _resolve_fallback_spec(default_entries, _WaypointSpecScript)
-	var wp_scene: PackedScene = spec.get("waypoint_projectile_scene") as PackedScene
-	if wp_scene == null and fb_waypoint != null:
-		wp_scene = fb_waypoint.get("waypoint_projectile_scene") as PackedScene
-	if wp_scene == null and default_catalog != null:
-		wp_scene = default_catalog.get("default_projectile_scene") as PackedScene
-	var wp_fire: AudioStream = spec.get("fire_sfx") as AudioStream
-	if wp_fire == null and fb_waypoint != null:
-		wp_fire = fb_waypoint.get("fire_sfx") as AudioStream
-	if wp_fire == null and default_catalog != null:
-		wp_fire = default_catalog.get("default_fire_sfx") as AudioStream
+	var wp_scene: PackedScene = _resolve_scene_field(
+		spec, fb_waypoint, "waypoint_projectile_scene", default_catalog, "default_projectile_scene"
+	)
+	if wp_scene == null:
+		push_warning(
+			"PlayShapeEffectAssembler: WAYPOINT_VOLLEY missing projectile scene | entry=%s"
+			% str(_entry.get("display_name"))
+		)
+		return
+	var wp_fire: AudioStream = _resolve_sfx_field(
+		spec, fb_waypoint, "fire_sfx", default_catalog, "default_fire_sfx", "fire"
+	)
 	if wp_fire == null:
 		wp_fire = resolve_projectile_volley_fire_sfx(true, false)
 	wp_fire = _resolve_final_shape_sfx(wp_fire, "fire")
-	var wp_hit_first: AudioStream = spec.get("hit_sfx_first") as AudioStream
-	if wp_hit_first == null and fb_waypoint != null:
-		wp_hit_first = fb_waypoint.get("hit_sfx_first") as AudioStream
-	if wp_hit_first == null and default_catalog != null:
-		wp_hit_first = default_catalog.get("default_hit_sfx_first") as AudioStream
-	wp_hit_first = _resolve_final_shape_sfx(wp_hit_first, "hit_first")
-	var wp_hit_pierce: AudioStream = spec.get("hit_sfx_pierce") as AudioStream
-	if wp_hit_pierce == null and fb_waypoint != null:
-		wp_hit_pierce = fb_waypoint.get("hit_sfx_pierce") as AudioStream
-	if wp_hit_pierce == null and default_catalog != null:
-		wp_hit_pierce = default_catalog.get("default_hit_sfx_pierce") as AudioStream
-	wp_hit_pierce = _resolve_final_shape_sfx(wp_hit_pierce, "hit_pierce")
-	var wp_hit_reroute: AudioStream = spec.get("hit_sfx_reroute") as AudioStream
-	if wp_hit_reroute == null and fb_waypoint != null:
-		wp_hit_reroute = fb_waypoint.get("hit_sfx_reroute") as AudioStream
-	if wp_hit_reroute == null and default_catalog != null:
-		wp_hit_reroute = default_catalog.get("default_hit_sfx_reroute") as AudioStream
-	wp_hit_reroute = _resolve_final_shape_sfx(wp_hit_reroute, "hit_reroute")
+	var wp_hit_first: AudioStream = _resolve_sfx_field(
+		spec, fb_waypoint, "hit_sfx_first", default_catalog, "default_hit_sfx_first", "hit_first"
+	)
+	var wp_hit_pierce: AudioStream = _resolve_sfx_field(
+		spec, fb_waypoint, "hit_sfx_pierce", default_catalog, "default_hit_sfx_pierce", "hit_pierce"
+	)
+	var wp_hit_reroute: AudioStream = _resolve_sfx_field(
+		spec, fb_waypoint, "hit_sfx_reroute", default_catalog, "default_hit_sfx_reroute", "hit_reroute"
+	)
 	var wp_max_concurrent: int = int(spec.get("max_concurrent_in_radius"))
 	if wp_max_concurrent <= 0 and fb_waypoint != null:
 		wp_max_concurrent = int(fb_waypoint.get("max_concurrent_in_radius"))

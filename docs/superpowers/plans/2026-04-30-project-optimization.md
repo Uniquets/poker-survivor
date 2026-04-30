@@ -87,14 +87,14 @@ Add a short section named `自动化回归入口` documenting:
 - Modify: `scripts/combat/combat_effect_runner.gd`
 - Test: `tests/cards/test_effect_pipeline.gd`
 
-- [ ] Step 1: Add failing tests for missing or partial effect specs.
+- [x] Step 1: Add failing tests for missing or partial effect specs.
 
 Required cases:
 - Missing per-entry projectile scene falls back to catalog default.
 - Missing fire/hit audio falls back to catalog default.
 - Unknown `effect_spec` script produces a warning and no command, not a crash.
 
-- [ ] Step 2: Centralize fallback behavior inside `PlayShapeEffectAssembler`.
+- [x] Step 2: Centralize fallback behavior inside `PlayShapeEffectAssembler`.
 
 Rules to preserve:
 - Entry-level spec wins.
@@ -102,14 +102,14 @@ Rules to preserve:
 - Catalog default is third.
 - If still missing, command is skipped with a clear warning only when execution would otherwise fail.
 
-- [ ] Step 3: Keep `CombatEffectRunner` execution defensive but thin.
+- [x] Step 3: Keep `CombatEffectRunner` execution defensive but thin.
 
 Expected behavior:
 - Runner does not know card rules.
 - Runner validates required scene/method fields before spawning.
 - Runner warning messages include command kind and missing resource path when available.
 
-- [ ] Step 4: Run regression harness.
+- [x] Step 4: Run regression harness.
 
 Run:
 
@@ -121,7 +121,7 @@ Expected:
 - Group detector tests still pass.
 - Effect pipeline fallback tests pass.
 
-- [ ] Step 5: Run Godot MCP smoke for one combat path.
+- [x] Step 5: Run Godot MCP smoke for one combat path.
 
 Required MCP coverage:
 - `play_scene` main scene.
