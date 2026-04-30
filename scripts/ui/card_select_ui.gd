@@ -45,6 +45,8 @@ const _META_SELECT_HOVER_TWEEN := "_select_hover_tween"
 
 ## 当前轮可选 CardResource 列表
 var _card_options: Array = []
+## 当前轮可选强化效果列表；非空时 UI 按统一卡面展示效果。
+var _upgrade_effect_options: Array = []
 ## 当前容器内 Card 控件实例
 var _card_instances: Array = []
 ## 是否允许点击选中
@@ -55,6 +57,8 @@ var _offer_player_luck: float = 0.0
 
 ## 用户选定一张牌时发出（参数为 CardResource）
 signal card_selected(card: CardResource)
+## 用户选中某个强化效果时发出。
+signal upgrade_effect_selected(effect: Resource)
 ## 用户点击「跳过」：仅作意图；**`RunScene`** 须在 **`LEVEL_UP`** 模式下再 **`finalize_skip_current_offer`**
 signal offer_skipped
 
@@ -149,8 +153,9 @@ func _build_option_cards() -> void:
 	var mul: float = option_card_size_multiplier
 	var cell := Vector2(_SLOT_W * mul, _SLOT_H * mul)
 
-	for i in range(len(_card_options)):
-		var card_data = _card_options[i]
+	var option_count: int = _upgrade_effect_options.size() if not _upgrade_effect_options.is_empty() else _card_options.size()
+	for i in range(option_count):
+		var card_data = _card_options[i] if _upgrade_effect_options.is_empty() else _display_card_for_effect(_upgrade_effect_options[i])
 		var slot := Control.new()
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot.custom_minimum_size = cell
@@ -164,7 +169,12 @@ func _build_option_cards() -> void:
 		card_instance.offset_bottom = 0
 		card_instance.scale = Vector2(1.0, 1.0)
 		card_instance.set_card(card_data)
-		card_instance.card_clicked.connect(_on_card_clicked)
+		if _upgrade_effect_options.is_empty():
+			card_instance.card_clicked.connect(_on_card_clicked)
+		else:
+			var effect: Resource = _upgrade_effect_options[i] as Resource
+			_apply_effect_card_visual(card_instance, effect, card_data)
+			card_instance.card_clicked.connect(_on_upgrade_effect_card_clicked.bind(effect))
 		_card_instances.append(card_instance)
 		_card_container.add_child(slot)
 		## 中文：在 **`Card`** 内挂 **`Panel`** 边框光（**`StyleBoxFlat`**），随牌 **`scale`** 与矩形走，不挂在槽上
@@ -192,6 +202,19 @@ func _on_card_clicked(card: Card) -> void:
 	print("[ui] card_selected | card=%s damage=%d" % [selected_card.get_full_name(), selected_card.damage])
 
 
+## 点击强化效果卡面后发出统一选择信号。
+func _on_upgrade_effect_card_clicked(card: Card, effect: Resource) -> void:
+	if not _is_selecting:
+		return
+	if _card_instances.find(card) == -1:
+		return
+	if effect == null:
+		return
+	card.modulate = Color(1, 0.8, 0.6)
+	card.position = Vector2(0, -5)
+	emit_signal("upgrade_effect_selected", effect)
+
+
 ## 进入下一轮：重新抽牌并展示
 func next_round() -> void:
 	_is_selecting = true
@@ -211,6 +234,7 @@ func clear_cards() -> void:
 		_stop_select_hover_tween_on_slot(child)
 		child.queue_free()
 	_card_options.clear()
+	_upgrade_effect_options.clear()
 
 
 ## 更新顶部标题文案
@@ -227,12 +251,63 @@ func is_selecting() -> bool:
 ## 用指定数组作为本轮选项（不加抽池，用于测试加牌）
 func show_cards(cards: Array) -> void:
 	_card_options = []
+	_upgrade_effect_options.clear()
 	for card in cards:
 		_card_options.append(card)
 	_display_options()
 	_is_selecting = true
 	if is_instance_valid(_skip_offer_button) and is_instance_valid(_skip_offer_row) and _skip_offer_row.visible:
 		_skip_offer_button.disabled = false
+
+
+## 展示强化效果三选一；统一使用卡面背景，卡牌效果显示点数花色，非卡牌效果显示文字。
+func show_upgrade_effects(effects: Array) -> void:
+	_card_options.clear()
+	_upgrade_effect_options = []
+	for effect in effects:
+		if effect is Resource:
+			_upgrade_effect_options.append(effect)
+	_display_options()
+	_is_selecting = true
+	if is_instance_valid(_skip_offer_button) and is_instance_valid(_skip_offer_row) and _skip_offer_row.visible:
+		_skip_offer_button.disabled = false
+
+
+## 返回强化效果需要按普通卡牌样式展示的卡牌。
+func _display_card_for_effect(effect: Resource) -> CardResource:
+	if effect != null and effect.has_method("get_display_card"):
+		return effect.call("get_display_card") as CardResource
+	return null
+
+
+## 按效果类型刷新卡面：非卡牌效果清空角标并在中间显示标题和说明。
+func _apply_effect_card_visual(card_instance: Card, effect: Resource, display_card: CardResource) -> void:
+	if card_instance == null or effect == null:
+		return
+	if display_card != null:
+		return
+	var labels: Array[String] = ["Suit1", "Num1", "Suit2", "Num2"]
+	for path in labels:
+		var label := card_instance.get_node_or_null("Front/%s" % path) as Label
+		if label != null:
+			label.text = ""
+	var text := Label.new()
+	text.name = "UpgradeEffectText"
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	text.set_anchors_preset(Control.PRESET_FULL_RECT)
+	text.offset_left = 20.0
+	text.offset_top = 64.0
+	text.offset_right = -20.0
+	text.offset_bottom = -48.0
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.add_theme_font_size_override("font_size", 18)
+	text.add_theme_color_override("font_color", Color(0.08, 0.07, 0.06, 1.0))
+	var title: String = str(effect.get("title"))
+	var desc: String = str(effect.get("description"))
+	text.text = title if desc.strip_edges().is_empty() else "%s\n%s" % [title, desc]
+	card_instance.get_node("Front").add_child(text)
 
 
 ## 若槽上存有 Hover **`Tween`**，**`kill`** 并移除元数据，避免与 **`queue_free`** 竞态

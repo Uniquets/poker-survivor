@@ -10,6 +10,6 @@ func _init() -> void:
 
 
 ## 调用 RunScene 的调序入口。
-func apply_to_run(_card_runtime: CardRuntime, run_scene: Node, _card_pool: Node) -> void:
+func apply_to_run(_card_runtime: CardRuntime, run_scene: Object, _card_pool: Object) -> void:
 	if run_scene != null and run_scene.has_method("open_hand_sort_reward"):
 		run_scene.call("open_hand_sort_reward")

@@ -14,7 +14,7 @@ func _init() -> void:
 
 
 ## 删除选中的牌。
-func apply_to_run(card_runtime: CardRuntime, _run_scene: Node, _card_pool: Node) -> void:
+func apply_to_run(card_runtime: CardRuntime, _run_scene: Object, _card_pool: Object) -> void:
 	if card_runtime == null:
 		return
 	card_runtime.remove_card_at(selected_index)

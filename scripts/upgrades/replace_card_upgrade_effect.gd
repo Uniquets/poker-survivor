@@ -16,7 +16,7 @@ func _init() -> void:
 
 
 ## 执行置换；没有新牌配置时不改变牌组。
-func apply_to_run(card_runtime: CardRuntime, _run_scene: Node, _card_pool: Node) -> void:
+func apply_to_run(card_runtime: CardRuntime, _run_scene: Object, _card_pool: Object) -> void:
 	if card_runtime == null or replacement_card == null:
 		return
 	card_runtime.remove_card_at(selected_index)

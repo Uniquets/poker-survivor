@@ -23,5 +23,5 @@ func get_display_card() -> CardResource:
 
 
 ## 应用强化效果；子类覆盖这个方法执行实际逻辑。
-func apply_to_run(_card_runtime: CardRuntime, _run_scene: Node, _card_pool: Node) -> void:
+func apply_to_run(_card_runtime: CardRuntime, _run_scene: Object, _card_pool: Object) -> void:
 	pass

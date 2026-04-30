@@ -17,7 +17,7 @@ func _init() -> void:
 
 
 ## 调用 RunScene 上配置的白名单方法。
-func apply_to_run(_card_runtime: CardRuntime, run_scene: Node, _card_pool: Node) -> void:
+func apply_to_run(_card_runtime: CardRuntime, run_scene: Object, _card_pool: Object) -> void:
 	if run_scene == null or method_name.strip_edges().is_empty():
 		return
 	if not _ALLOWED_METHODS.has(method_name):
