@@ -80,6 +80,8 @@ var _dungeon_horizontal_infinite: bool = false
 var _card_pick_flow: CardPickFlow = _CardPickFlowScript.new()
 ## 当前显示中的强化效果三选一选项。
 var _current_upgrade_offer: Array = []
+## 等待玩家从当前牌组中选择目标的强化效果。
+var _pending_deck_target_upgrade_effect: Resource = null
 ## 升级选卡时 **`CardSelectUI`** 的 **`z_index`**：须高于底栏 **`CardHandUI`**，否则底部「跳过」键被手牌层盖住
 const _CARD_SELECT_Z_ABOVE_HAND: int = 80
 ## 顶部 HUD 倒计时展示用总秒数（**20 分钟**）；仅展示递减，胜负等逻辑后续再接
@@ -379,6 +381,8 @@ func _on_card_pick_from_ui(card: CardResource) -> void:
 			_complete_add_one_card(card)
 		CardPickFlow.PickMode.LEVEL_UP:
 			_complete_level_up_card(card)
+		CardPickFlow.PickMode.DECK_TARGET:
+			_complete_upgrade_effect_deck_target(card)
 		CardPickFlow.PickMode.OPENING:
 			_on_opening_pick(card)
 		_:
@@ -525,16 +529,35 @@ func _on_upgrade_effect_selected(effect: Resource) -> void:
 	if effect == null:
 		return
 	if bool(effect.get("requires_deck_target")):
-		_apply_default_deck_target_to_effect(effect)
+		_begin_upgrade_effect_deck_target_selection(effect)
+		return
 	_apply_upgrade_effect_and_resume(effect)
 
 
-## 第一版为需要牌组目标的效果写入一个默认目标，后续可替换为手牌点选 UI。
-func _apply_default_deck_target_to_effect(effect: Resource) -> void:
+## 为删牌、置换等效果打开当前牌组目标选择。
+func _begin_upgrade_effect_deck_target_selection(effect: Resource) -> void:
 	if effect == null or card_runtime == null or card_runtime.cards.is_empty():
+		_resume_after_upgrade_effect_offer()
 		return
-	if effect.get("selected_index") != null:
-		effect.set("selected_index", card_runtime.cards.size() - 1)
+	_pending_deck_target_upgrade_effect = effect
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.DECK_TARGET
+	card_select_ui.set_title("选择要操作的牌")
+	card_select_ui.show_cards(card_runtime.cards)
+
+
+## 玩家选中牌组目标后写入下标，并继续应用强化效果。
+func _complete_upgrade_effect_deck_target(card: CardResource) -> void:
+	if _pending_deck_target_upgrade_effect == null or card == null:
+		_resume_after_upgrade_effect_offer()
+		return
+	var idx: int = card_runtime.cards.find(card)
+	if idx < 0:
+		_resume_after_upgrade_effect_offer()
+		return
+	_pending_deck_target_upgrade_effect.set("selected_index", idx)
+	var effect := _pending_deck_target_upgrade_effect
+	_pending_deck_target_upgrade_effect = null
+	_apply_upgrade_effect_and_resume(effect)
 
 
 ## 应用强化效果并处理升级多次选择的续抽。
@@ -555,6 +578,7 @@ func _apply_upgrade_effect_and_resume(effect: Resource) -> void:
 ## 关闭强化效果 UI 并恢复战斗。
 func _resume_after_upgrade_effect_offer() -> void:
 	_current_upgrade_offer = []
+	_pending_deck_target_upgrade_effect = null
 	_resume_after_level_up_card_flow()
 
 

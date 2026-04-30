@@ -4,9 +4,19 @@
 [ext_resource type="Script" uid="uid://crat18ur3g082" path="res://scripts/combat/spawn_timeline_segment.gd" id="2_segment"]
 [ext_resource type="Script" uid="uid://cx5x7i2ly2md8" path="res://scripts/combat/spawn_enemy_entry.gd" id="3_entry"]
 [ext_resource type="PackedScene" uid="uid://1gn4id4wba2f" path="res://scenes/enemies/skelen.tscn" id="4_skelen"]
-[ext_resource type="Script" path="res://scripts/combat/elite_spawn_event.gd" id="5_elite"]
-[ext_resource type="Script" path="res://scripts/combat/enemy_drop_entry.gd" id="6_drop"]
+[ext_resource type="Script" uid="uid://1k53eiemtra4" path="res://scripts/combat/elite_spawn_event.gd" id="5_elite"]
+[ext_resource type="Script" uid="uid://cocpwaedy4l8t" path="res://scripts/combat/enemy_drop_entry.gd" id="6_drop"]
 [ext_resource type="PackedScene" path="res://scenes/combat/EliteRewardCardPickup.tscn" id="7_elite_pickup"]
+
+[sub_resource type="Resource" id="drop_elite_reward"]
+script = ExtResource("6_drop")
+pickup_scene = ExtResource("7_elite_pickup")
+
+[sub_resource type="Resource" id="elite_event_first"]
+script = ExtResource("5_elite")
+trigger_seconds = 20.0
+elite_scene = ExtResource("4_skelen")
+death_drop_entries = [SubResource("drop_elite_reward")]
 
 [sub_resource type="Resource" id="entry_skelen_early"]
 script = ExtResource("3_entry")
@@ -50,22 +60,6 @@ max_batch_count = 5
 pressure_budget = 300.0
 hard_alive_cap = 300
 enemy_pool = [SubResource("entry_skelen_late")]
-
-[sub_resource type="Resource" id="drop_elite_reward"]
-script = ExtResource("6_drop")
-pickup_scene = ExtResource("7_elite_pickup")
-drop_probability = 1.0
-
-[sub_resource type="Resource" id="elite_event_first"]
-script = ExtResource("5_elite")
-trigger_seconds = 150.0
-elite_scene = ExtResource("4_skelen")
-death_drop_entries = [SubResource("drop_elite_reward")]
-visual_scale_multiplier = 1.35
-elite_modulate = Color(1.45, 0.65, 0.25, 1)
-health_multiplier = 4.0
-move_speed_multiplier = 1.1
-touch_damage_multiplier = 1.5
 
 [resource]
 script = ExtResource("1_timeline")

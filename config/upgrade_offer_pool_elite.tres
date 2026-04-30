@@ -1,40 +1,34 @@
-[gd_resource type="Resource" script_class="UpgradeOfferPool" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="UpgradeOfferPool" format=3 uid="uid://bt8offp1u74om"]
 
-[ext_resource type="Script" path="res://scripts/upgrades/upgrade_offer_pool.gd" id="1_pool"]
-[ext_resource type="Script" path="res://scripts/upgrades/remove_card_upgrade_effect.gd" id="2_remove"]
-[ext_resource type="Script" path="res://scripts/upgrades/reorder_deck_upgrade_effect.gd" id="3_reorder"]
-[ext_resource type="Script" path="res://scripts/upgrades/replace_card_upgrade_effect.gd" id="4_replace"]
-[ext_resource type="Script" path="res://scripts/upgrades/grant_augment_upgrade_effect.gd" id="5_augment"]
+[ext_resource type="Script" uid="uid://dxlagwfx17nw8" path="res://scripts/upgrades/upgrade_offer_pool.gd" id="1_pool"]
+[ext_resource type="Script" uid="uid://dpn8wvjmhmkl0" path="res://scripts/upgrades/remove_card_upgrade_effect.gd" id="2_remove"]
+[ext_resource type="Script" uid="uid://c0h2mj1pseypp" path="res://scripts/upgrades/reorder_deck_upgrade_effect.gd" id="3_reorder"]
+[ext_resource type="Script" uid="uid://xmv0uq2h0jwx" path="res://scripts/upgrades/replace_card_upgrade_effect.gd" id="4_replace"]
+[ext_resource type="Script" uid="uid://bc54aouukirwe" path="res://scripts/upgrades/grant_augment_upgrade_effect.gd" id="5_augment"]
 
 [sub_resource type="Resource" id="Resource_remove"]
 script = ExtResource("2_remove")
 title = "删除一张"
 description = "从当前牌组中移除一张牌"
-weight = 1.0
 requires_deck_target = true
 
 [sub_resource type="Resource" id="Resource_reorder"]
 script = ExtResource("3_reorder")
 title = "调序一次"
 description = "重新调整当前牌组顺序"
-weight = 1.0
-requires_deck_target = false
 
 [sub_resource type="Resource" id="Resource_replace"]
 script = ExtResource("4_replace")
 title = "置换一次"
 description = "移除一张牌并获得一张新牌"
-weight = 1.0
 requires_deck_target = true
 
 [sub_resource type="Resource" id="Resource_augment"]
 script = ExtResource("5_augment")
+method_name = "grant_global_permanent_volley_bonus"
 title = "弹道 +1"
 description = "所有投射物额外增加一条弹道"
-weight = 1.0
-requires_deck_target = false
-method_name = "grant_global_permanent_volley_bonus"
 
 [resource]
 script = ExtResource("1_pool")
-effects = Array[Resource]([SubResource("Resource_remove"), SubResource("Resource_reorder"), SubResource("Resource_replace"), SubResource("Resource_augment")])
+effects = [SubResource("Resource_remove"), SubResource("Resource_reorder"), SubResource("Resource_replace"), SubResource("Resource_augment")]

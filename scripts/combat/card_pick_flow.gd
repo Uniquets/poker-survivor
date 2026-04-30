@@ -2,7 +2,7 @@ extends RefCounted
 class_name CardPickFlow
 
 # 卡牌拾取模式：OPENING（初始拾取），ADD_ONE（添加单张卡牌），LEVEL_UP（升级卡牌），IDLE（无拾取）
-enum PickMode { OPENING, ADD_ONE, LEVEL_UP, IDLE }
+enum PickMode { OPENING, ADD_ONE, LEVEL_UP, DECK_TARGET, IDLE }
 
 # 卡牌选择的标志和计数器
 var is_selecting_cards: bool = false  # 当前是否处于选择模式
