@@ -7,6 +7,7 @@
 
 [resource]
 script = ExtResource("1_script")
+debug_effect_plan_logging = false
 global_audio = ExtResource("4_audio")
 card_draw_probability = ExtResource("2_draw")
 card_face_config = ExtResource("3_face")

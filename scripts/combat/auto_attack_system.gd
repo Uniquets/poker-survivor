@@ -94,7 +94,8 @@ func _on_group_played(cards, group_type) -> void:
 		plan = _play_resolver.resolve(ctx)
 	
 	# 调试输出当前 PlayPlan 内容
-	_debug_print_play_plan(plan)
+	if _should_debug_print_play_plan():
+		_debug_print_play_plan(plan)
 	
 	# 执行解析好的 PlayPlan，传递父节点关联信息
 	var world: Dictionary = {"parent": parent_node}
@@ -146,7 +147,7 @@ func grant_permanent_volley_plus_one() -> void:
 
 ## 调试：打印 PlayPlan 内命令种类与关键字段
 func _debug_print_play_plan(plan) -> void:
-	if plan == null:
+	if plan == null or not _should_debug_print_play_plan():
 		return
 	print("[effects] play_plan | tags=%s est_dmg=%d cmds=%d" % [str(plan.debug_tags), plan.estimated_enemy_damage, plan.commands.size()])
 	for i in range(plan.commands.size()):
@@ -155,3 +156,8 @@ func _debug_print_play_plan(plan) -> void:
 			continue
 		var cmd = c
 		print("  [%d] kind=%s phase=%s dmg=%d cnt=%d" % [i, str(cmd.kind), cmd.phase, cmd.damage, cmd.count])
+
+
+func _should_debug_print_play_plan() -> bool:
+	var global_config: GameGlobalConfig = GameConfig.GAME_GLOBAL as GameGlobalConfig
+	return global_config != null and global_config.debug_effect_plan_logging

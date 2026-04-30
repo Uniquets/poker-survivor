@@ -55,6 +55,9 @@ class_name GameGlobalConfig
 @export_group("其他")
 @export_subgroup("索敌方案 · 弹道锁敌默认")
 ## `PlayEffectCommand.lock_target_kind < 0` 时 Runner 回退方案；须与 `TargetConfirmDefault.TargetConfirmScheme` 整型一致
+@export_subgroup("Debug")
+@export var debug_effect_plan_logging: bool = false
+
 @export var ballistic_lock_default_scheme: int = 4
 ## 出厂 `PROJECTILE_VOLLEY` 写入 `cmd.lock_target_kind` 的推荐值
 @export var ballistic_lock_scheme_projectile_volley: int = 4

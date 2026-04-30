@@ -85,7 +85,7 @@ Add a short section named `自动化回归入口` documenting:
 - Modify: `scripts/cards/play_shape_table_resolver.gd`
 - Modify: `scripts/cards/play_shape_effect_assembler.gd`
 - Modify: `scripts/combat/combat_effect_runner.gd`
-- Test: `tests/cards/test_effect_pipeline.gd`
+- Test: `tests/cards/test_auto_attack_debug.gd`
 
 - [x] Step 1: Add failing tests for missing or partial effect specs.
 
@@ -138,21 +138,21 @@ Required MCP coverage:
 - Modify: matching `.tres` config if needed
 - Test: `tests/cards/test_effect_pipeline.gd`
 
-- [ ] Step 1: Add a debug flag for effect-plan logging.
+- [x] Step 1: Add a debug flag for effect-plan logging.
 
 Preferred location:
 - Existing global config if it is already loaded through `GameConfig.GAME_GLOBAL`.
 
 Flag:
-- `@export var debug_print_play_plan: bool = false`
+- `@export var debug_effect_plan_logging: bool = false`
 
-- [ ] Step 2: Wrap `_debug_print_play_plan(plan)` calls behind the flag.
+- [x] Step 2: Wrap `_debug_print_play_plan(plan)` calls behind the flag.
 
 Expected:
 - Normal gameplay no longer prints command details every group.
 - Developers can re-enable logging from config.
 
-- [ ] Step 3: Run the regression harness.
+- [x] Step 3: Run the regression harness.
 
 Expected:
 - Tests pass.
