@@ -80,6 +80,7 @@ func _validate_spec(errors: Array[String], key: String, spec: Resource, default_
 			"projectile_scene",
 			"default_projectile_scene"
 		)
+		_validate_projectile_sfx_fallbacks(errors, key, spec, default_entries, _ParallelSpecScript)
 		return
 	if script == _WaypointSpecScript:
 		_validate_scene_fallback(
@@ -91,6 +92,7 @@ func _validate_spec(errors: Array[String], key: String, spec: Resource, default_
 			"waypoint_projectile_scene",
 			"default_projectile_scene"
 		)
+		_validate_projectile_sfx_fallbacks(errors, key, spec, default_entries, _WaypointSpecScript)
 		return
 	if script == _ExplosiveVolleySpecScript or script == _HealInvulnSpecScript:
 		return
@@ -131,6 +133,50 @@ func _resolve_scene_fallback(
 		if scene != null:
 			return scene
 	return get(catalog_field) as PackedScene
+
+
+func _validate_projectile_sfx_fallbacks(
+	errors: Array[String],
+	key: String,
+	spec: Resource,
+	default_entries: Array,
+	spec_script: Script
+) -> void:
+	_validate_sfx_fallback(errors, key, spec, default_entries, spec_script, "fire_sfx", "default_fire_sfx")
+	_validate_sfx_fallback(errors, key, spec, default_entries, spec_script, "hit_sfx_first", "default_hit_sfx_first")
+	_validate_sfx_fallback(errors, key, spec, default_entries, spec_script, "hit_sfx_pierce", "default_hit_sfx_pierce")
+	_validate_sfx_fallback(errors, key, spec, default_entries, spec_script, "hit_sfx_reroute", "default_hit_sfx_reroute")
+
+
+func _validate_sfx_fallback(
+	errors: Array[String],
+	key: String,
+	spec: Resource,
+	default_entries: Array,
+	spec_script: Script,
+	spec_field: String,
+	catalog_field: String
+) -> void:
+	if _resolve_audio_fallback(spec, default_entries, spec_script, spec_field, catalog_field) == null:
+		errors.append("%s: %s is missing and no fallback %s is configured" % [key, spec_field, catalog_field])
+
+
+func _resolve_audio_fallback(
+	spec: Resource,
+	default_entries: Array,
+	spec_script: Script,
+	spec_field: String,
+	catalog_field: String
+) -> AudioStream:
+	var stream: AudioStream = spec.get(spec_field) as AudioStream
+	if stream != null:
+		return stream
+	var fallback_spec: Resource = _resolve_fallback_spec(default_entries, spec_script)
+	if fallback_spec != null:
+		stream = fallback_spec.get(spec_field) as AudioStream
+		if stream != null:
+			return stream
+	return get(catalog_field) as AudioStream
 
 
 func _resolve_fallback_spec(default_entries: Array, spec_script: Script) -> Resource:

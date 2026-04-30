@@ -181,5 +181,7 @@ shape_dic = {
 "DEFAULT": SubResource("e_default")
 }
 default_projectile_scene = ExtResource("7_def_card_proj")
+default_fire_sfx = ExtResource("9_hit_default")
 default_hit_sfx_first = ExtResource("9_hit_default")
 default_hit_sfx_pierce = ExtResource("9_hit_default")
+default_hit_sfx_reroute = ExtResource("9_hit_default")

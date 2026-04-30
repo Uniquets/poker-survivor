@@ -11,7 +11,6 @@ extends Node2D
 @export var ground_atlas_coords: Vector2i = Vector2i(0, 0)
 
 @onready var _ground: TileMapLayer = $Ground
-@onready var _walls: TileMapLayer = $Walls
 
 
 func _ready() -> void:
