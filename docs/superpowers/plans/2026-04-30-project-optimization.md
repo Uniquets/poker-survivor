@@ -244,19 +244,19 @@ Required checks:
 - Modify: `scripts/core/combat_mechanics_tuning.gd` if needed
 - Test: `tests/cards/test_effect_pipeline.gd`
 
-- [ ] Step 1: Add validation helpers for shape catalog entries.
+- [x] Step 1: Add validation helpers for shape catalog entries.
 
 Check:
 - Every entry has a display name.
 - Every entry has an `effect_spec`.
 - Every command-producing spec has required scenes or known fallback scenes.
 
-- [ ] Step 2: Call validation in test harness.
+- [x] Step 2: Call validation in test harness.
 
 Expected:
 - Test fails with a readable message if a required config is missing.
 
-- [ ] Step 3: Document validation expectations.
+- [x] Step 3: Document validation expectations.
 
 Modify `docs/工程规范.md`:
 - Add one paragraph saying config resources must fail loudly through validation tests when required fields are absent.

@@ -4,6 +4,7 @@ const TestSupport = preload("res://tests/test_support.gd")
 const TEST_SCRIPTS: Array[String] = [
 	"res://tests/cards/test_group_detector.gd",
 	"res://tests/cards/test_effect_pipeline.gd",
+	"res://tests/cards/test_shape_catalog_validation.gd",
 	"res://tests/cards/test_auto_attack_debug.gd",
 	"res://tests/cards/test_meteor_hit_sfx.gd",
 	"res://tests/cards/test_card_pick_flow.gd",
