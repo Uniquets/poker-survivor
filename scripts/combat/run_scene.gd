@@ -34,6 +34,7 @@ func _global_audio_service() -> Node:
 const _CARD_SELECT_SCENE := preload("res://scenes/ui/CardSelectUI.tscn")
 const _HAND_SORT_SCENE := preload("res://scenes/ui/HandSortPanel.tscn")
 const _TEST_MENU_SCENE := preload("res://scenes/ui/TestMenuPanel.tscn")
+const _CardPickFlowScript: GDScript = preload("res://scripts/combat/card_pick_flow.gd")
 
 ## 由 **`_spawn_player_character`** 在 **`_ready`** 首段写入；根为 **`BattleUnits`** 子节点
 var player: CombatPlayer = null
@@ -67,22 +68,7 @@ var test_menu_panel: Control
 var _map_bounds: Rect2 = Rect2()
 ## 与 **`GameConfig.GAME_GLOBAL.dungeon_horizontal_infinite`** 同步；在 **`_configure_dungeon_playfield`** 写入
 var _dungeon_horizontal_infinite: bool = false
-## 是否处于开局/加牌等「选卡 UI」流程（为真时暂停世界、仅 HUD 可点）
-var _is_selecting_cards: bool = true
-
-## 开局需选牌总轮数
-var _total_selection_count: int = 3
-## 当前已完成选牌轮数
-var _current_selection_count: int = 0
-## 开局阶段已选中的 CardResource 列表
-var _selected_cards: Array = []
-
-## 当前与 CardSelectUI 配合的选卡模式（开局三选一 / 加一张 / 升级 / 无）
-enum _CardPickMode { OPENING, ADD_ONE, LEVEL_UP, IDLE }
-
-var _card_pick_mode: _CardPickMode = _CardPickMode.IDLE
-## 升级触发的选卡次数队列（单次加经验跨多级会 >1）
-var _pending_level_up_card_picks: int = 0
+var _card_pick_flow: CardPickFlow = _CardPickFlowScript.new()
 ## 升级选卡时 **`CardSelectUI`** 的 **`z_index`**：须高于底栏 **`CardHandUI`**，否则底部「跳过」键被手牌层盖住
 const _CARD_SELECT_Z_ABOVE_HAND: int = 80
 ## 顶部 HUD 倒计时展示用总秒数（**20 分钟**）；仅展示递减，胜负等逻辑后续再接
@@ -166,7 +152,7 @@ func _ready() -> void:
 
 	card_hand_ui.visible = false
 	card_select_ui.visible = true
-	_is_selecting_cards = true
+	_card_pick_flow.is_selecting_cards = true
 
 	enemy_manager.set_active(false)
 	auto_attack_system.process_mode = Node.PROCESS_MODE_DISABLED
@@ -246,7 +232,7 @@ func _apply_hand_card_overlay_highlight() -> void:
 		test_menu_full_dim.visible = test_menu_panel.visible
 	if card_hand_ui == null:
 		return
-	var select_glow: bool = card_select_ui.visible and card_hand_ui.visible and _is_selecting_cards
+	var select_glow: bool = card_select_ui.visible and card_hand_ui.visible and _card_pick_flow.is_selecting_cards
 	var test_menu_glow: bool = test_menu_panel != null and test_menu_panel.visible and card_hand_ui.visible
 	var glow_on: bool = select_glow or test_menu_glow
 	if card_hand_ui.has_method("set_hand_card_overlay_glow"):
@@ -264,7 +250,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if ek.keycode != KEY_H:
 		return
-	if _is_selecting_cards:
+	if _card_pick_flow.is_selecting_cards:
 		return
 	get_viewport().set_input_as_handled()
 	if test_menu_panel.visible:
@@ -368,22 +354,22 @@ func _on_hand_sort_overlay_closed() -> void:
 
 ## 重置开局选牌状态与 UI 标题
 func _reset_selection_state() -> void:
-	_selected_cards = []
-	_current_selection_count = 0
-	_card_pick_mode = _CardPickMode.OPENING
-	card_select_ui.set_title("选择卡牌 (%d/%d)" % [_current_selection_count, _total_selection_count])
+	_card_pick_flow.selected_cards = []
+	_card_pick_flow.current_selection_count = 0
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.OPENING
+	card_select_ui.set_title("选择卡牌 (%d/%d)" % [_card_pick_flow.current_selection_count, _card_pick_flow.total_selection_count])
 	if card_select_ui.has_method("set_skip_offer_visible"):
 		card_select_ui.set_skip_offer_visible(false)
 
 
 ## 来自选卡 UI 的选中：按当前模式分发给开局或加牌
 func _on_card_pick_from_ui(card: CardResource) -> void:
-	match _card_pick_mode:
-		_CardPickMode.ADD_ONE:
+	match _card_pick_flow.card_pick_mode:
+		CardPickFlow.PickMode.ADD_ONE:
 			_complete_add_one_card(card)
-		_CardPickMode.LEVEL_UP:
+		CardPickFlow.PickMode.LEVEL_UP:
 			_complete_level_up_card(card)
-		_CardPickMode.OPENING:
+		CardPickFlow.PickMode.OPENING:
 			_on_opening_pick(card)
 		_:
 			pass
@@ -391,26 +377,26 @@ func _on_card_pick_from_ui(card: CardResource) -> void:
 
 ## 升级选卡界面「跳过」：本轮不拿牌，归还展示牌；待选次数减一，仍有则再抽三张，否则恢复战斗
 func _on_card_select_offer_skipped() -> void:
-	if _card_pick_mode != _CardPickMode.LEVEL_UP:
+	if _card_pick_flow.card_pick_mode != CardPickFlow.PickMode.LEVEL_UP:
 		return
 	if not card_select_ui.has_method("finalize_skip_current_offer"):
 		return
 	card_select_ui.finalize_skip_current_offer()
-	_pending_level_up_card_picks = maxi(0, _pending_level_up_card_picks - 1)
-	print("[combat] level_up_card_skipped | pending_after=%d" % _pending_level_up_card_picks)
-	if _pending_level_up_card_picks > 0:
+	_card_pick_flow.pending_level_up_card_picks = maxi(0, _card_pick_flow.pending_level_up_card_picks - 1)
+	print("[combat] level_up_card_skipped | pending_after=%d" % _card_pick_flow.pending_level_up_card_picks)
+	if _card_pick_flow.pending_level_up_card_picks > 0:
 		if card_runtime.cards.size() >= max_hand_size:
 			push_warning("[combat] 升级选牌中断：手牌已满，丢弃剩余待选")
-			_pending_level_up_card_picks = 0
+			_card_pick_flow.pending_level_up_card_picks = 0
 			_resume_after_level_up_card_flow()
 			return
 		var card_pool := get_node_or_null("/root/CardPool")
 		var random_cards: Array = _draw_three_from_pool_weighted(card_pool)
 		if random_cards.size() == 0:
-			_pending_level_up_card_picks = 0
+			_card_pick_flow.pending_level_up_card_picks = 0
 			_resume_after_level_up_card_flow()
 			return
-		card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _pending_level_up_card_picks)
+		card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _card_pick_flow.pending_level_up_card_picks)
 		card_select_ui.show_cards(random_cards)
 		return
 	_resume_after_level_up_card_flow()
@@ -419,24 +405,24 @@ func _on_card_select_offer_skipped() -> void:
 ## 开局选牌：写入列表、推进轮次或结束开局
 func _on_opening_pick(card: CardResource) -> void:
 	card_select_ui.finalize_pick_from_current_offer(card)
-	_selected_cards.append(card)
-	_current_selection_count += 1
+	_card_pick_flow.selected_cards.append(card)
+	_card_pick_flow.current_selection_count += 1
 
-	print("[ui] card_selected | selection=%d card=%s damage=%d" % [_current_selection_count, card.get_full_name(), card.damage])
+	print("[ui] card_selected | selection=%d card=%s damage=%d" % [_card_pick_flow.current_selection_count, card.get_full_name(), card.damage])
 	var _ga1: Node = _global_audio_service()
 	if _ga1 != null and _ga1.has_method("play_card_pick_confirm"):
 		_ga1.play_card_pick_confirm()
 
-	if _current_selection_count >= _total_selection_count:
+	if _card_pick_flow.current_selection_count >= _card_pick_flow.total_selection_count:
 		_finish_selection()
 	else:
-		card_select_ui.set_title("选择卡牌 (%d/%d)" % [_current_selection_count, _total_selection_count])
+		card_select_ui.set_title("选择卡牌 (%d/%d)" % [_card_pick_flow.current_selection_count, _card_pick_flow.total_selection_count])
 		card_select_ui.next_round()
 
 
 ## 开局选满：解除暂停、启动 CardRuntime 与自动战斗
 func _finish_selection() -> void:
-	_is_selecting_cards = false
+	_card_pick_flow.is_selecting_cards = false
 	get_tree().paused = false
 	_hud.process_mode = Node.PROCESS_MODE_INHERIT
 	var _ga2: Node = _global_audio_service()
@@ -448,11 +434,11 @@ func _finish_selection() -> void:
 	card_hand_ui.visible = true
 	_apply_hand_card_overlay_highlight()
 
-	print("[ui] finish_selection: selected cards count = %d" % _selected_cards.size())
-	for card in _selected_cards:
+	print("[ui] finish_selection: selected cards count = %d" % _card_pick_flow.selected_cards.size())
+	for card in _card_pick_flow.selected_cards:
 		print("[ui] finish_selection: card = %s damage=%d" % [card.get_full_name(), card.damage])
 
-	card_runtime.cards = _selected_cards
+	card_runtime.cards = _card_pick_flow.selected_cards
 	print("[ui] finish_selection: card_runtime.cards size = %d" % card_runtime.cards.size())
 
 	if enemy_manager != null:
@@ -470,15 +456,15 @@ func _finish_selection() -> void:
 
 	card_hand_ui.refresh_display()
 
-	_card_pick_mode = _CardPickMode.IDLE
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.IDLE
 	card_select_ui.z_index = 0
 	if card_select_ui.has_method("set_skip_offer_visible"):
 		card_select_ui.set_skip_offer_visible(false)
 
-	print("[ui] selection_complete | total=%d cards=%s" % [_selected_cards.size(), _get_selected_cards_text()])
+	print("[ui] selection_complete | total=%d cards=%s" % [_card_pick_flow.selected_cards.size(), _card_pick_flow.selected_cards_text()])
 
 	enemy_manager.apply_spawn_interval_for_player_level(player.combat_level)
-	if _pending_level_up_card_picks > 0:
+	if _card_pick_flow.pending_level_up_card_picks > 0:
 		call_deferred("_deferred_try_begin_level_up_pick")
 
 
@@ -490,23 +476,23 @@ func grant_global_permanent_volley_bonus() -> void:
 
 ## 升级选卡：若当前不在其它选卡流程中则开启暂停与三选一
 func _deferred_try_begin_level_up_pick() -> void:
-	if _pending_level_up_card_picks <= 0:
+	if _card_pick_flow.pending_level_up_card_picks <= 0:
 		return
-	if _is_selecting_cards:
+	if _card_pick_flow.is_selecting_cards:
 		return
 	_begin_level_up_card_selection()
 
 
 ## 进入升级选牌：暂停战斗与卡时序，从池抽三张展示
 func _begin_level_up_card_selection() -> void:
-	if _pending_level_up_card_picks <= 0:
+	if _card_pick_flow.pending_level_up_card_picks <= 0:
 		return
 	if card_runtime.cards.size() >= max_hand_size:
 		push_warning("[combat] 升级选牌跳过：手牌已满，清空待选队列")
-		_pending_level_up_card_picks = 0
+		_card_pick_flow.pending_level_up_card_picks = 0
 		return
 
-	_card_pick_mode = _CardPickMode.LEVEL_UP
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.LEVEL_UP
 	enemy_manager.set_active(false)
 	auto_attack_system.process_mode = Node.PROCESS_MODE_DISABLED
 	card_runtime.process_mode = Node.PROCESS_MODE_DISABLED
@@ -515,18 +501,18 @@ func _begin_level_up_card_selection() -> void:
 	var random_cards: Array = _draw_three_from_pool_weighted(card_pool)
 	if random_cards.size() == 0:
 		push_warning("[combat] 升级选牌失败：卡池为空，清空待选队列")
-		_pending_level_up_card_picks = 0
+		_card_pick_flow.pending_level_up_card_picks = 0
 		_resume_after_level_up_card_flow()
 		return
 
-	card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _pending_level_up_card_picks)
+	card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _card_pick_flow.pending_level_up_card_picks)
 	card_select_ui.z_index = _CARD_SELECT_Z_ABOVE_HAND
 	card_select_ui.show_cards(random_cards)
 	if card_select_ui.has_method("set_skip_offer_visible"):
 		card_select_ui.set_skip_offer_visible(true)
 	card_select_ui.visible = true
 	card_hand_ui.visible = true
-	_is_selecting_cards = true
+	_card_pick_flow.is_selecting_cards = true
 	_hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = true
 	_apply_hand_card_overlay_highlight()
@@ -534,31 +520,31 @@ func _begin_level_up_card_selection() -> void:
 
 ## 升级选牌点选后：归还池、加牌；若仍有待选则 `next_round`，否则恢复战斗
 func _complete_level_up_card(card: CardResource) -> void:
-	if _card_pick_mode != _CardPickMode.LEVEL_UP:
+	if _card_pick_flow.card_pick_mode != CardPickFlow.PickMode.LEVEL_UP:
 		return
 
 	card_select_ui.finalize_pick_from_current_offer(card)
 	card_runtime.add_card(card)
-	print("[combat] level_up_card | card=%s pending_before=%d" % [card.get_full_name(), _pending_level_up_card_picks])
+	print("[combat] level_up_card | card=%s pending_before=%d" % [card.get_full_name(), _card_pick_flow.pending_level_up_card_picks])
 	var _ga3: Node = _global_audio_service()
 	if _ga3 != null and _ga3.has_method("play_card_pick_confirm"):
 		_ga3.play_card_pick_confirm()
 
-	_pending_level_up_card_picks = maxi(0, _pending_level_up_card_picks - 1)
+	_card_pick_flow.pending_level_up_card_picks = maxi(0, _card_pick_flow.pending_level_up_card_picks - 1)
 
-	if _pending_level_up_card_picks > 0:
+	if _card_pick_flow.pending_level_up_card_picks > 0:
 		if card_runtime.cards.size() >= max_hand_size:
 			push_warning("[combat] 升级选牌中断：手牌已满，丢弃剩余待选")
-			_pending_level_up_card_picks = 0
+			_card_pick_flow.pending_level_up_card_picks = 0
 			_resume_after_level_up_card_flow()
 			return
 		var card_pool := get_node_or_null("/root/CardPool")
 		var random_cards: Array = _draw_three_from_pool_weighted(card_pool)
 		if random_cards.size() == 0:
-			_pending_level_up_card_picks = 0
+			_card_pick_flow.pending_level_up_card_picks = 0
 			_resume_after_level_up_card_flow()
 			return
-		card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _pending_level_up_card_picks)
+		card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _card_pick_flow.pending_level_up_card_picks)
 		card_select_ui.show_cards(random_cards)
 		return
 
@@ -567,7 +553,7 @@ func _complete_level_up_card(card: CardResource) -> void:
 
 ## 关闭升级选牌 UI 并恢复生成与自动出牌（与测试加牌收尾对称）
 func _resume_after_level_up_card_flow() -> void:
-	_card_pick_mode = _CardPickMode.IDLE
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.IDLE
 	card_select_ui.z_index = 0
 	if card_select_ui.has_method("set_skip_offer_visible"):
 		card_select_ui.set_skip_offer_visible(false)
@@ -576,7 +562,7 @@ func _resume_after_level_up_card_flow() -> void:
 	_hud.process_mode = Node.PROCESS_MODE_INHERIT
 	card_select_ui.visible = false
 	card_hand_ui.visible = true
-	_is_selecting_cards = false
+	_card_pick_flow.is_selecting_cards = false
 	card_runtime.process_mode = Node.PROCESS_MODE_INHERIT
 	auto_attack_system.process_mode = Node.PROCESS_MODE_INHERIT
 	enemy_manager.set_active(true)
@@ -602,18 +588,10 @@ func _on_player_experience_state_changed(level: int, xp_in_segment: int, xp_need
 func _on_player_leveled_up(levels_gained: int) -> void:
 	if levels_gained <= 0:
 		return
-	_pending_level_up_card_picks += levels_gained
+	_card_pick_flow.pending_level_up_card_picks += levels_gained
 	enemy_manager.apply_spawn_interval_for_player_level(player.combat_level)
-	if not _is_selecting_cards:
+	if not _card_pick_flow.is_selecting_cards:
 		_begin_level_up_card_selection()
-
-
-## 将已选牌名拼成一行日志用字符串
-func _get_selected_cards_text() -> String:
-	var names = []
-	for card in _selected_cards:
-		names.append(card.get_full_name())
-	return ", ".join(names)
 
 
 ## 从卡池抽三张供三选一：使用全局「抽卡概率配置」下的等级段 + 幸运加权
@@ -634,7 +612,7 @@ func _draw_three_from_pool_weighted(card_pool: Node) -> Array:
 func _process(delta: float) -> void:
 	_update_hud_match_clock(delta)
 	_update_hud_mix_shuffle_bar()
-	if _is_selecting_cards:
+	if _card_pick_flow.is_selecting_cards:
 		return
 
 	_update_camera_follow()
@@ -646,7 +624,7 @@ func _update_hud_match_clock(delta: float) -> void:
 		return
 	if get_tree().paused:
 		return
-	if _is_selecting_cards:
+	if _card_pick_flow.is_selecting_cards:
 		return
 	_match_display_seconds = maxf(0.0, _match_display_seconds - delta)
 	_refresh_match_clock_label()
@@ -697,7 +675,7 @@ func _on_enemy_run_kill_count_changed(_new_total: int) -> void:
 func _on_hud_pause_button_pressed() -> void:
 	if not enable_test_functions:
 		return
-	if _is_selecting_cards:
+	if _card_pick_flow.is_selecting_cards:
 		return
 	if test_menu_panel == null:
 		return
@@ -799,7 +777,7 @@ func _start_test_add_card_from_pool() -> void:
 		_hud.process_mode = Node.PROCESS_MODE_INHERIT
 		return
 
-	_card_pick_mode = _CardPickMode.ADD_ONE
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.ADD_ONE
 	if card_select_ui.has_method("set_skip_offer_visible"):
 		card_select_ui.set_skip_offer_visible(false)
 
@@ -808,7 +786,7 @@ func _start_test_add_card_from_pool() -> void:
 	card_select_ui.visible = true
 
 	card_hand_ui.visible = true
-	_is_selecting_cards = true
+	_card_pick_flow.is_selecting_cards = true
 
 	_hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = true
@@ -817,9 +795,9 @@ func _start_test_add_card_from_pool() -> void:
 
 ## 测试加牌流程结束：池结算、加牌、恢复战斗
 func _complete_add_one_card(card: CardResource) -> void:
-	if _card_pick_mode != _CardPickMode.ADD_ONE:
+	if _card_pick_flow.card_pick_mode != CardPickFlow.PickMode.ADD_ONE:
 		return
-	_card_pick_mode = _CardPickMode.IDLE
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.IDLE
 
 	card_select_ui.finalize_pick_from_current_offer(card)
 	card_runtime.add_card(card)
@@ -834,10 +812,10 @@ func _complete_add_one_card(card: CardResource) -> void:
 	card_select_ui.visible = false
 	card_select_ui.z_index = 0
 	card_hand_ui.visible = true
-	_is_selecting_cards = false
+	_card_pick_flow.is_selecting_cards = false
 
 	card_hand_ui.refresh_display()
 	_apply_hand_card_overlay_highlight()
 
-	if _pending_level_up_card_picks > 0:
+	if _card_pick_flow.pending_level_up_card_picks > 0:
 		call_deferred("_deferred_try_begin_level_up_pick")

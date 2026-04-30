@@ -165,7 +165,7 @@ Expected:
 - Modify: `scripts/combat/run_scene.gd`
 - Test: existing MCP smoke plus future flow tests
 
-- [ ] Step 1: Identify selection-state fields currently owned by `RunScene`.
+- [x] Step 1: Identify selection-state fields currently owned by `RunScene`.
 
 Move candidates:
 - `_is_selecting_cards`
@@ -175,7 +175,7 @@ Move candidates:
 - `_card_pick_mode`
 - `_pending_level_up_card_picks`
 
-- [ ] Step 2: Create `CardPickFlow`.
+- [x] Step 2: Create `CardPickFlow`.
 
 Responsibilities:
 - Track opening selection state.
@@ -188,14 +188,14 @@ Non-responsibilities:
 - It must not update health/XP HUD.
 - It must not execute combat effects.
 
-- [ ] Step 3: Rewire `RunScene` to delegate selection decisions.
+- [x] Step 3: Rewire `RunScene` to delegate selection decisions.
 
 Expected:
 - `RunScene` still owns scene nodes and pause state.
 - `CardPickFlow` owns selection bookkeeping.
 - Existing UI signals keep their current external behavior.
 
-- [ ] Step 4: Run MCP smoke for selection paths.
+- [x] Step 4: Run MCP smoke for selection paths.
 
 Required paths:
 - Opening three picks starts combat.
