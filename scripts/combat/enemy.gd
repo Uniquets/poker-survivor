@@ -45,6 +45,8 @@ const _HIT_FLASH_IN_SEC: float = 0.05
 const _HIT_FLASH_OUT_SEC: float = 0.12
 ## 当前受击闪白 tween；连打打断重来，避免 **`modulate`** 叠偏
 var _hit_flash_tween: Tween = null
+## 受击闪白结束后恢复的基础颜色；精英怪会把它改成精英调色。
+var _base_modulate: Color = Color.WHITE
 ## 受击击退残留速度（像素/秒）；每帧衰减并与追击 **`velocity`** 叠加
 var _knockback_velocity: Vector2 = Vector2.ZERO
 ## 击退残留指数衰减系数（秒⁻¹）；由 **`apply_hit_knockback`** 根据投递解析刷新；**`_ready`** 对齐牌型默认
@@ -103,7 +105,8 @@ func _ready() -> void:
 ## 应用精英外观、移动、接触伤害和死亡掉落配置。
 func _apply_elite_config() -> void:
 	scale *= _elite_visual_scale_multiplier
-	modulate = _elite_modulate
+	_base_modulate = _elite_modulate
+	modulate = _base_modulate
 	move_speed *= _elite_move_speed_multiplier
 	touch_damage = maxi(1, int(round(float(touch_damage) * _elite_touch_damage_multiplier)))
 	death_drop_entries = _elite_death_drop_entries.duplicate()
@@ -221,10 +224,10 @@ func play_hit_white_flash() -> void:
 	if _hit_flash_tween != null and is_instance_valid(_hit_flash_tween):
 		_hit_flash_tween.kill()
 		_hit_flash_tween = null
-	modulate = Color.WHITE
+	modulate = _base_modulate
 	_hit_flash_tween = create_tween()
 	_hit_flash_tween.tween_property(self, "modulate", _HIT_FLASH_WHITE_PEAK, _HIT_FLASH_IN_SEC)
-	_hit_flash_tween.tween_property(self, "modulate", Color.WHITE, _HIT_FLASH_OUT_SEC)
+	_hit_flash_tween.tween_property(self, "modulate", _base_modulate, _HIT_FLASH_OUT_SEC)
 	_hit_flash_tween.finished.connect(
 		func () -> void:
 			_hit_flash_tween = null
