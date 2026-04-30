@@ -148,31 +148,79 @@ static func sample_points_in_camera_view_no_wall(
 		return PackedVector2Array()
 	var view_size: Vector2 = camera.get_viewport_rect().size * camera.zoom
 	var rect := Rect2(camera.global_position - view_size * 0.5, view_size)
-	var cur_min: float = maxf(0.0, min_dist)
-	var max_step: int = 6
 	var out := PackedVector2Array()
-	for _s in range(max_step):
-		var raw: PackedVector2Array = sample_points_in_rect_with_distance(rect, need, cur_min, max_attempts)
-		var filtered: PackedVector2Array = filter_points_by_wall_overlap(raw, world_2d, wall_mask, query_radius)
-		# 中文：限制点间最大距离，避免过度分散导致包围区过大。
-		out = PackedVector2Array()
-		for p in filtered:
-			var ok: bool = true
-			for e in out:
-				if p.distance_to(e) > max_dist:
-					ok = false
-					break
-			if ok:
-				out.append(p)
-			if out.size() >= need:
-				break
+	var min_bound: float = maxf(0.0, min_dist)
+	var max_bound: float = maxf(min_bound, max_dist)
+	var rand_attempts: int = maxi(max_attempts, need * 8)
+	# 中文：第一阶段严格随机采样，非法位置（撞墙/越界/距离不符）直接重算，直到凑满或尝试耗尽。
+	for _i in range(rand_attempts):
 		if out.size() >= need:
-			return out
-		cur_min *= 0.75
-	# 中文：最终兜底，返回已有点；若仍空则退回相机中心。
-	if out.is_empty():
-		out.append(camera.global_position)
+			break
+		var p := Vector2(
+			randf_range(rect.position.x, rect.end.x),
+			randf_range(rect.position.y, rect.end.y)
+		)
+		if not _is_wall_free_point(world_2d, p, wall_mask, query_radius):
+			continue
+		var ok: bool = true
+		for e in out:
+			var d: float = e.distance_to(p)
+			if d < min_bound or d > max_bound:
+				ok = false
+				break
+		if ok:
+			out.append(p)
+	# 中文：第二阶段仍不足时放宽最小间距，仅保留“无墙体 + 最大距离”限制，继续重算补点。
+	var relaxed_attempts: int = need * 10
+	for _j in range(relaxed_attempts):
+		if out.size() >= need:
+			break
+		var p2 := Vector2(
+			randf_range(rect.position.x, rect.end.x),
+			randf_range(rect.position.y, rect.end.y)
+		)
+		if not _is_wall_free_point(world_2d, p2, wall_mask, query_radius):
+			continue
+		var ok2: bool = true
+		for e2 in out:
+			if e2.distance_to(p2) > max_bound:
+				ok2 = false
+				break
+		if ok2:
+			out.append(p2)
+	# 中文：第三阶段兜底贴边：沿可视矩形边缘均匀投点，非法则沿边再微偏移，确保严格凑满 count。
+	if out.size() < need:
+		var remain: int = need - out.size()
+		for k in range(remain):
+			var t: float = float(k + 1) / float(remain + 1)
+			var edge_p := Vector2(lerp(rect.position.x, rect.end.x, t), rect.position.y)
+			if k % 4 == 1:
+				edge_p = Vector2(rect.end.x, lerp(rect.position.y, rect.end.y, t))
+			elif k % 4 == 2:
+				edge_p = Vector2(lerp(rect.end.x, rect.position.x, t), rect.end.y)
+			elif k % 4 == 3:
+				edge_p = Vector2(rect.position.x, lerp(rect.end.y, rect.position.y, t))
+			if not _is_wall_free_point(world_2d, edge_p, wall_mask, query_radius):
+				var inset: float = maxf(query_radius + 2.0, 8.0)
+				edge_p = edge_p.clamp(rect.position + Vector2.ONE * inset, rect.end - Vector2.ONE * inset)
+			out.append(edge_p)
 	return out
+
+
+## 检查单点是否与墙体碰撞；用于陨石采样阶段的逐点重算与贴边兜底。
+static func _is_wall_free_point(world_2d: World2D, p: Vector2, wall_mask: int, query_radius: float) -> bool:
+	if world_2d == null:
+		return true
+	var ss: PhysicsDirectSpaceState2D = world_2d.direct_space_state
+	var qp := PhysicsShapeQueryParameters2D.new()
+	var c := CircleShape2D.new()
+	c.radius = maxf(2.0, query_radius)
+	qp.shape = c
+	qp.transform = Transform2D(0.0, p)
+	qp.collision_mask = wall_mask
+	qp.collide_with_areas = true
+	qp.collide_with_bodies = true
+	return ss.intersect_shape(qp, 1).is_empty()
 
 
 ## 计算二维点集凸包（逆时针）；点数 < 3 时原样返回。

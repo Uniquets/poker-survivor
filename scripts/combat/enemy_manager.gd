@@ -6,6 +6,15 @@ class_name EnemyManager
 ## 敌实例加在 `units_root`（与玩家同层的 `BattleUnits`）上；由该层 `y_sort_enabled` 按 **global Y** 排序（靠下者压上）
 ## 约定：`CharacterBody2D` 脚点为原点；精灵子节点上移对齐脚底（见 `player.tscn` / `Slm.tscn`）
 
+## 刷怪时间轴根配置脚本；用脚本校验避免首次 headless 编译依赖 `class_name` 索引顺序
+const _RunSpawnTimelineConfigScript: GDScript = preload("res://scripts/combat/run_spawn_timeline_config.gd")
+## 刷怪时间段脚本；用于运行时校验 `segments` 元素
+const _SpawnTimelineSegmentScript: GDScript = preload("res://scripts/combat/spawn_timeline_segment.gd")
+## 敌人池条目脚本；用于权重抽取时校验 `enemy_pool` 元素
+const _SpawnEnemyEntryScript: GDScript = preload("res://scripts/combat/spawn_enemy_entry.gd")
+## 玩家脚本；自动解析追击目标时优先读取其进程内单例
+const _CombatPlayerScript: GDScript = preload("res://scripts/combat/player.gd")
+
 ## 进程内当前敌人管理器引用（`_enter_tree` 写入、`_exit_tree` 清空）；本局仅应存在一个 `EnemyManager`；其它脚本经 `preload` 后调用 `get_enemy_manager()` 或读此字段
 static var enemy_manager_singleton: EnemyManager = null
 
@@ -23,8 +32,8 @@ static func get_enemy_manager() -> EnemyManager:
 @export var max_alive_enemies: int = 12
 ## 相对目标生成半径（像素）；默认与 **`EnemyConfig.spawn_radius`** 一致
 @export var spawn_radius: float = 340.0
-## 追击目标节点（通常为玩家）
-@export var target: Node2D
+## 追击目标缓存；为空时会自动寻找当前 `CombatPlayer`
+var target: Node2D
 ## 用于「视口外生成」判定的摄像机；未设时回退为旧逻辑（玩家周围 **`spawn_radius`** 环）
 @export var spawn_viewport_camera: Camera2D
 ## 视口轴对齐矩形再 **`grow`** 此边距（像素）；敌人体积圆须**完全**在该矩形**左右外侧**（不在上下沿外刷怪）
@@ -43,6 +52,8 @@ static func get_enemy_manager() -> EnemyManager:
 @export_range(16.0, 280.0, 4.0) var spawn_fallback_extra_px: float = 72.0
 ## 玩家与敌实例共用的战场单位层（`Node2D` 且启用 `y_sort_enabled`）；未赋值时敌仍加在自身下（仅兼容旧场景）
 @export var units_root: Node2D
+## 刷怪时间轴配置；为空时沿用旧的单一 `enemy_scene` / `spawn_interval_seconds` 字段。
+@export var spawn_timeline_config: Resource = null
 
 ## 本局玩家侧累计击杀（敌 **`_die`** 时 +1）；与金币等经济解耦，供 HUD 骷髅数展示
 signal run_kill_count_changed(new_total: int)
@@ -62,6 +73,14 @@ const TEST_CRAZY_RESPAWN_COUNT: int = 3
 ## 场景加载时的生成间隔基底（秒），供随等级缩放：`max(下限, 基底/(1+k*(等级-1)))`（见 `EnemyConfig.spawn_interval_level_k`）；**`_ready`** 用当前 **`spawn_interval_seconds`** 写入
 ## 中文：类体不读 **`GameConfig.ENEMY_CONFIG`**（与 **`GAME_GLOBAL`** 同属 `GameConfig` 静态初始化链）
 var _base_spawn_interval_seconds: float = 1.5
+## 当前普通刷怪压力预算；时间轴启用时由当前段覆盖。
+var current_pressure_budget: float = 12.0
+## 当前局内战斗秒数；由 `RunScene` 写入，供时间轴选段。
+var _match_elapsed_seconds: float = 0.0
+## 已触发的精英事件时间，避免同一事件重复刷。
+var _triggered_elite_event_seconds: Dictionary = {}
+## Boss 模式开启后普通刷怪停止，后续由 Boss 行为或事件单独召唤小怪。
+var _boss_mode_active: bool = false
 
 
 ## 进入场景树时注册为全局单例（供 `CombatEffectRunner`、索敌等获取）
@@ -105,6 +124,7 @@ func register_enemy_kill(killed: CombatEnemy = null) -> void:
 ## 初始化随机种子；若检查器里 `units_root` 未解析（常见为 `NodePath` 相对根写错），从父节点按名绑定 `BattleUnits`
 func _ready() -> void:
 	_base_spawn_interval_seconds = spawn_interval_seconds
+	current_pressure_budget = float(max_alive_enemies)
 	randomize()
 	if units_root == null or not is_instance_valid(units_root):
 		var p := get_parent()
@@ -121,11 +141,16 @@ func get_units_root() -> Node:
 	return self
 
 
-## 计时满足且未达上限时生成一只怪
+## 计时满足且未达上限时生成普通怪；启用时间轴时由当前段决定节奏、批量和敌人池。
 func _process(delta: float) -> void:
 	if not _active:
 		return
-	if enemy_scene == null or not is_instance_valid(target):
+	if not is_instance_valid(resolve_spawn_target()):
+		return
+	_update_timeline_state()
+	if _boss_mode_active:
+		return
+	if spawn_timeline_config == null and enemy_scene == null:
 		return
 	if _alive_enemy_count() >= max_alive_enemies:
 		return
@@ -135,7 +160,10 @@ func _process(delta: float) -> void:
 		return
 
 	_spawn_timer = 0.0
-	_spawn_enemy()
+	if spawn_timeline_config != null:
+		_spawn_timeline_batch()
+	else:
+		_spawn_enemy()
 
 
 ## 开关生成逻辑（选牌阶段可关）
@@ -143,12 +171,143 @@ func set_active(active: bool) -> void:
 	_active = active
 
 
+## 由 `RunScene` 写入局内战斗秒数，用于时间轴选段和确定事件触发。
+func set_match_elapsed_seconds(seconds: float) -> void:
+	_match_elapsed_seconds = maxf(0.0, seconds)
+
+
+## 返回当前刷怪追击目标；未显式设置时自动从 `CombatPlayer` 单例解析并缓存。
+func resolve_spawn_target() -> Node2D:
+	if is_instance_valid(target):
+		return target
+	var singleton_player: Node = _CombatPlayerScript.get_combat_player()
+	if singleton_player is Node2D and is_instance_valid(singleton_player):
+		target = singleton_player as Node2D
+		return target
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		return target
+	var grouped_player: Node = tree.get_first_node_in_group("combat_player")
+	if grouped_player is Node2D and is_instance_valid(grouped_player):
+		target = grouped_player as Node2D
+	return target
+
+
+## 应用当前时间段的普通刷怪节奏；只改生成参数，不直接生成敌人。
+func apply_spawn_segment(segment: Resource) -> void:
+	if segment == null or segment.get_script() != _SpawnTimelineSegmentScript:
+		return
+	spawn_interval_seconds = float(segment.get("spawn_interval_seconds"))
+	max_alive_enemies = int(segment.get("hard_alive_cap"))
+	current_pressure_budget = float(segment.get("pressure_budget"))
+
+
 ## 按玩家战斗等级刷新生成间隔：等级越高间隔越短，不低于 `EnemyConfig.spawn_interval_min_seconds`
 func apply_spawn_interval_for_player_level(player_level: int) -> void:
+	if spawn_timeline_config != null:
+		return
 	var lvl: int = maxi(1, player_level)
 	var ec: EnemyConfig = GameConfig.ENEMY_CONFIG
 	var denom: float = 1.0 + ec.spawn_interval_level_k * float(max(0, lvl - 1))
 	spawn_interval_seconds = maxf(ec.spawn_interval_min_seconds, _base_spawn_interval_seconds / denom)
+
+
+## 刷新时间轴段落与确定事件状态；Boss 开始后阻止普通刷怪。
+func _update_timeline_state() -> void:
+	if not _has_valid_spawn_timeline():
+		return
+	apply_spawn_segment(spawn_timeline_config.call("segment_for_time", _match_elapsed_seconds) as Resource)
+	if should_trigger_elite_event(_match_elapsed_seconds):
+		mark_elite_event_triggered(_match_elapsed_seconds)
+		print("[spawn] elite_event_ready | time=%.1f" % _match_elapsed_seconds)
+	if should_enter_boss_mode(_match_elapsed_seconds):
+		mark_boss_mode_started()
+		print("[spawn] boss_event_started | time=%.1f" % _match_elapsed_seconds)
+
+
+## 判断当前时间是否应该触发某个尚未触发的精英事件。
+func should_trigger_elite_event(match_seconds: float) -> bool:
+	if not _has_valid_spawn_timeline():
+		return false
+	var event_seconds: Array = spawn_timeline_config.get("elite_event_seconds")
+	for raw_t in event_seconds:
+		var t: float = float(raw_t)
+		if match_seconds >= t and not _triggered_elite_event_seconds.has(t):
+			return true
+	return false
+
+
+## 标记不大于当前时间的第一个精英事件已触发。
+func mark_elite_event_triggered(match_seconds: float) -> void:
+	if not _has_valid_spawn_timeline():
+		return
+	var event_seconds: Array = spawn_timeline_config.get("elite_event_seconds")
+	for raw_t in event_seconds:
+		var t: float = float(raw_t)
+		if match_seconds >= t and not _triggered_elite_event_seconds.has(t):
+			_triggered_elite_event_seconds[t] = true
+			return
+
+
+## 判断是否到达 Boss 入场时间。
+func should_enter_boss_mode(match_seconds: float) -> bool:
+	return _has_valid_spawn_timeline() and not _boss_mode_active and match_seconds >= float(spawn_timeline_config.get("boss_event_seconds"))
+
+
+## 标记 Boss 模式已开始。
+func mark_boss_mode_started() -> void:
+	_boss_mode_active = true
+
+
+## 返回当前是否处于 Boss 模式。
+func is_boss_mode_active() -> bool:
+	return _boss_mode_active
+
+
+## 判断加入指定压力后是否仍在当前预算内。
+func can_spawn_with_pressure(extra_pressure: float) -> bool:
+	return _alive_enemy_pressure() + maxf(0.0, extra_pressure) <= current_pressure_budget
+
+
+## 当前场上敌人压力；初版按每只普通怪 1 计，后续可由敌实例或生成条目写入。
+func _alive_enemy_pressure() -> float:
+	var total: float = 0.0
+	for c in get_units_root().get_children():
+		var ce := c as CombatEnemy
+		if ce == null or ce.is_dead():
+			continue
+		total += 1.0
+	return total
+
+
+## 从当前段敌人池按权重抽一个有效条目。
+func pick_enemy_entry(segment: Resource) -> Resource:
+	if segment == null or segment.get_script() != _SpawnTimelineSegmentScript:
+		return null
+	var total: float = 0.0
+	var valid: Array[Resource] = []
+	var enemy_pool: Array = segment.get("enemy_pool")
+	for raw in enemy_pool:
+		var entry: Resource = raw as Resource
+		if entry == null or entry.get_script() != _SpawnEnemyEntryScript:
+			continue
+		if not entry.call("is_valid_for_spawn"):
+			continue
+		valid.append(entry)
+		total += float(entry.get("weight"))
+	if total <= 0.0:
+		return null
+	var roll: float = randf() * total
+	for entry in valid:
+		roll -= float(entry.get("weight"))
+		if roll <= 0.0:
+			return entry
+	return valid.back()
+
+
+## 返回刷怪时间轴资源是否可被 `EnemyManager` 消费。
+func _has_valid_spawn_timeline() -> bool:
+	return spawn_timeline_config != null and spawn_timeline_config.get_script() == _RunSpawnTimelineConfigScript
 
 
 ## 统计 `units_root` 下仍存活的 `CombatEnemy` 数量（不含玩家；用于生成上限）
@@ -167,6 +326,25 @@ func _spawn_enemy() -> void:
 	if enemy_scene == null:
 		return
 	_spawn_enemy_from_scene(enemy_scene, _pick_spawn_world_position())
+
+
+## 按当前时间轴段落生成一批普通怪；压力预算或硬上限满时提前停止。
+func _spawn_timeline_batch() -> void:
+	var segment: Resource = spawn_timeline_config.call("segment_for_time", _match_elapsed_seconds) as Resource
+	var entry: Resource = pick_enemy_entry(segment)
+	if entry == null:
+		return
+	var segment_count: int = int(segment.call("roll_batch_count"))
+	var entry_min: int = int(entry.get("min_batch_count"))
+	var entry_max: int = int(entry.get("max_batch_count"))
+	var entry_count: int = randi_range(maxi(1, entry_min), maxi(entry_min, entry_max))
+	var count: int = mini(segment_count, entry_count)
+	for _i in range(count):
+		if _alive_enemy_count() >= max_alive_enemies:
+			break
+		if not can_spawn_with_pressure(float(entry.get("pressure_cost"))):
+			break
+		_spawn_enemy_from_scene(entry.get("enemy_scene") as PackedScene, _pick_spawn_world_position())
 
 
 ## 用指定预制体在 **`world_pos`** 生成一只敌（常规生成与疯狂补怪共用）

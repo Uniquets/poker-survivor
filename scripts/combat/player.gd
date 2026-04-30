@@ -104,6 +104,7 @@ func _enter_tree() -> void:
 	if combat_player_singleton != null and is_instance_valid(combat_player_singleton) and combat_player_singleton != self:
 		push_warning("CombatPlayer: 重复注册全局单例，将覆盖为当前节点")
 	combat_player_singleton = self
+	add_to_group("combat_player")
 
 
 ## 离开场景树时注销单例，避免悬空引用

@@ -8,6 +8,7 @@ const TEST_SCRIPTS: Array[String] = [
 	"res://tests/cards/test_auto_attack_debug.gd",
 	"res://tests/cards/test_meteor_hit_sfx.gd",
 	"res://tests/cards/test_card_pick_flow.gd",
+	"res://tests/combat/test_spawn_director.gd",
 	"res://tests/ui/test_run_hud_controller.gd",
 ]
 

@@ -182,12 +182,12 @@ static func test_rank2_four_kind_waypoint_command_carries_complete_default_hit_s
 	TestSupport.assert_eq(cmd.sfx_hit_reroute, source_cat.default_hit_sfx_reroute, "rank2 waypoint reroute-hit sfx")
 
 
-static func test_missing_projectile_scene_without_fallback_skips_command() -> void:
+static func test_missing_local_projectile_scene_uses_global_catalog_fallback() -> void:
 	var cat := PlayShapeCatalog.new()
 	var parallel_plan := _assemble_entry(_entry_with_spec(ShapeParallelVolleyEffectSpec.new()), cat)
 	var waypoint_plan := _assemble_entry(_entry_with_spec(ShapeWaypointVolleyEffectSpec.new()), cat)
-	TestSupport.assert_eq(parallel_plan.commands.size(), 0, "parallel missing scene command count")
-	TestSupport.assert_eq(waypoint_plan.commands.size(), 0, "waypoint missing scene command count")
+	TestSupport.assert_true(parallel_plan.commands.size() > 0, "parallel global fallback command count")
+	TestSupport.assert_true(waypoint_plan.commands.size() > 0, "waypoint global fallback command count")
 
 
 static func test_unknown_effect_spec_is_ignored_without_command() -> void:

@@ -151,7 +151,6 @@ func _ready() -> void:
 
 	_configure_dungeon_playfield()
 	_apply_strip_spawn_anchor_world_x()
-	enemy_manager.target = player
 	camera.global_position = player.global_position
 	_apply_camera_limits()
 	_refresh_health_ui(player.current_health, player.get_effective_max_health())
@@ -196,6 +195,7 @@ func _ready() -> void:
 
 	_match_display_seconds = _MATCH_CLOCK_START_SECONDS
 	_refresh_match_clock_label()
+	_sync_enemy_manager_match_time()
 	_refresh_kill_count_label()
 	_init_mix_shuffle_bar()
 
@@ -448,6 +448,7 @@ func _finish_selection() -> void:
 
 	_match_display_seconds = _MATCH_CLOCK_START_SECONDS
 	_refresh_match_clock_label()
+	_sync_enemy_manager_match_time()
 
 	enemy_manager.set_active(true)
 	auto_attack_system.process_mode = Node.PROCESS_MODE_INHERIT
@@ -623,11 +624,19 @@ func _update_hud_match_clock(delta: float) -> void:
 		return
 	_match_display_seconds = maxf(0.0, _match_display_seconds - delta)
 	_refresh_match_clock_label()
+	_sync_enemy_manager_match_time()
 
 
 ## 将剩余秒数格式化为 **`MM:SS`**
 func _refresh_match_clock_label() -> void:
 	_run_hud.refresh_match_clock(_match_display_seconds)
+
+
+## 将 HUD 倒计时换算成局内已进行秒数，供刷怪时间轴选择当前阶段。
+func _sync_enemy_manager_match_time() -> void:
+	if enemy_manager == null:
+		return
+	enemy_manager.set_match_elapsed_seconds(maxf(0.0, _MATCH_CLOCK_START_SECONDS - _match_display_seconds))
 
 
 ## **`MixCardBar`**：与 **`CardRuntime`** 装配阶段 **`assembly_interval`** 对齐

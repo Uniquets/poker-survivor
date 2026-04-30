@@ -429,24 +429,41 @@ func _spawn_meteor_storm(
 func _sample_meteor_points(
 	camera: Camera2D,
 	enemy_manager: EnemyManager,
-	_parent: Node,
+	parent: Node,
 	cmd
 ) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	var target_count: int = maxi(1, int(cmd.meteor_count))
 	var max_attempts: int = maxi(1, int(cmd.meteor_sample_max_attempts))
-	var min_dist: float = maxf(0.0, float(cmd.meteor_point_min_distance))
-	var max_dist: float = maxf(min_dist, float(cmd.meteor_point_max_distance))
+	var min_dist_raw: float = maxf(0.0, float(cmd.meteor_point_min_distance))
+	var max_dist_raw: float = maxf(min_dist_raw, float(cmd.meteor_point_max_distance))
 	var limit_dist: bool = bool(cmd.meteor_limit_point_distance)
+	var min_dist: float = min_dist_raw if limit_dist else 0.0
+	var max_dist: float = max_dist_raw if limit_dist else 999999.0
 	# 中文：分支语义——开启“随机敌人取样”时先尝试敌人位置，不足数量再回退随机点位补齐。
 	if bool(cmd.meteor_sample_from_random_enemy):
 		_collect_points_from_random_enemies(
 			points, enemy_manager, camera, target_count, max_attempts, min_dist, max_dist, limit_dist
 		)
 	if points.size() < target_count:
-		_collect_points_from_random_area(
-			points, camera, target_count, max_attempts, min_dist, max_dist, limit_dist
+		# 中文：随机点位补齐走 ProjectileTool 的“相机可见区 + 无墙体”采样，满足计划中的工具职责抽离。
+		var wall_mask: int = int(GameConfig.GAME_GLOBAL.world_barrier_collision_layer)
+		var sampled: PackedVector2Array = _ProjectileToolScript.sample_points_in_camera_view_no_wall(
+			camera,
+			parent.get_world_2d(),
+			target_count - points.size(),
+			min_dist,
+			max_dist,
+			max_attempts,
+			wall_mask,
+			16.0
 		)
+		for p in sampled:
+			if points.size() >= target_count:
+				break
+			if limit_dist and not _is_valid_meteor_distance(p, points, min_dist, max_dist, true):
+				continue
+			points.append(p)
 	return points
 
 
@@ -481,32 +498,6 @@ func _collect_points_from_random_enemies(
 		if not _is_valid_meteor_distance(pos, out_points, min_dist, max_dist, limit_dist):
 			continue
 		out_points.append(pos)
-
-
-## 在相机可见区内随机采样点位；根据开关决定是否应用 min/max 距离限制。
-func _collect_points_from_random_area(
-	out_points: PackedVector2Array,
-	camera: Camera2D,
-	target_count: int,
-	max_attempts: int,
-	min_dist: float,
-	max_dist: float,
-	limit_dist: bool
-) -> void:
-	# 中文：随机点位必须在“世界坐标可视矩形”内采样，不能直接用屏幕像素坐标。
-	var world_rect: Rect2 = _get_camera_world_rect(camera)
-	var tries: int = 0
-	while out_points.size() < target_count and tries < max_attempts:
-		tries += 1
-		var candidate := Vector2(
-			randf_range(world_rect.position.x, world_rect.end.x),
-			randf_range(world_rect.position.y, world_rect.end.y)
-		)
-		if not _is_point_in_camera_view(camera, candidate):
-			continue
-		if not _is_valid_meteor_distance(candidate, out_points, min_dist, max_dist, limit_dist):
-			continue
-		out_points.append(candidate)
 
 
 ## 判定候选点是否在当前相机可见区域内（将视口局部坐标转换为世界坐标后比较）。

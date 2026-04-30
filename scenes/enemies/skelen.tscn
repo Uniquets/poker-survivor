@@ -132,7 +132,7 @@ height = 44.0
 scale = Vector2(2, 2)
 script = ExtResource("1_07d63")
 move_speed = 75.0
-max_health = 3000
+max_health = 40
 death_drop_entries = [SubResource("Resource_skeleton_orb"), SubResource("Resource_skeleton_hp")]
 animated_sprite_node = NodePath("Animated")
 

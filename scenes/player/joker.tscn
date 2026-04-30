@@ -514,7 +514,7 @@ height = 20.666668
 [node name="Player" type="CharacterBody2D" unique_id=13247661]
 scale = Vector2(3, 3)
 script = ExtResource("1_sjg6c")
-max_health = 10000
+max_health = 100
 moving_speed_squared_threshold = 20.0
 
 [node name="Animated" type="AnimatedSprite2D" parent="." unique_id=887604616]

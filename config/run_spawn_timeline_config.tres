@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="RunSpawnTimelineConfig" format=3 uid="uid://cb41u4nueb1ci"]
+
+[ext_resource type="Script" uid="uid://c6cfc5q2ay8b1" path="res://scripts/combat/run_spawn_timeline_config.gd" id="1_timeline"]
+[ext_resource type="Script" uid="uid://crat18ur3g082" path="res://scripts/combat/spawn_timeline_segment.gd" id="2_segment"]
+[ext_resource type="Script" uid="uid://cx5x7i2ly2md8" path="res://scripts/combat/spawn_enemy_entry.gd" id="3_entry"]
+[ext_resource type="PackedScene" uid="uid://1gn4id4wba2f" path="res://scenes/enemies/skelen.tscn" id="4_skelen"]
+
+[sub_resource type="Resource" id="entry_skelen_early"]
+script = ExtResource("3_entry")
+enemy_scene = ExtResource("4_skelen")
+
+[sub_resource type="Resource" id="segment_early"]
+script = ExtResource("2_segment")
+spawn_interval_seconds = 1.0
+min_batch_count = 3
+max_batch_count = 3
+pressure_budget = 100.0
+hard_alive_cap = 100
+enemy_pool = [SubResource("entry_skelen_early")]
+
+[sub_resource type="Resource" id="entry_skelen_mid"]
+script = ExtResource("3_entry")
+enemy_scene = ExtResource("4_skelen")
+
+[sub_resource type="Resource" id="segment_mid"]
+script = ExtResource("2_segment")
+start_seconds = 60.0
+end_seconds = 180.0
+spawn_interval_seconds = 1.0
+min_batch_count = 4
+max_batch_count = 4
+pressure_budget = 300.0
+hard_alive_cap = 300
+enemy_pool = [SubResource("entry_skelen_mid")]
+
+[sub_resource type="Resource" id="entry_skelen_late"]
+script = ExtResource("3_entry")
+enemy_scene = ExtResource("4_skelen")
+
+[sub_resource type="Resource" id="segment_late"]
+script = ExtResource("2_segment")
+start_seconds = 180.0
+end_seconds = 1200.0
+spawn_interval_seconds = 2.0
+min_batch_count = 5
+max_batch_count = 5
+pressure_budget = 300.0
+hard_alive_cap = 300
+enemy_pool = [SubResource("entry_skelen_late")]
+
+[resource]
+script = ExtResource("1_timeline")
+segments = [SubResource("segment_early"), SubResource("segment_mid"), SubResource("segment_late")]

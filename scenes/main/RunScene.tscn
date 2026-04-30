@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://cmbvtx8rnsqof" path="res://scripts/cards/card_runtime.gd" id="7_cardruntime"]
 [ext_resource type="PackedScene" uid="uid://bk2124e281tii" path="res://scenes/ui/CardHandUI.tscn" id="8_cardhandui"]
 [ext_resource type="Texture2D" uid="uid://causp743ccxim" path="res://assets/sprites/UI/上方UI.png" id="10_ui_top"]
+[ext_resource type="Resource" uid="uid://cb41u4nueb1ci" path="res://config/run_spawn_timeline_config.tres" id="11_spawn_timeline"]
 
 [sub_resource type="AtlasTexture" id="atlas_top_portrait"]
 atlas = ExtResource("10_ui_top")
@@ -119,9 +120,13 @@ y_sort_enabled = true
 [node name="PlayerSpawn" type="Marker2D" parent="BattleUnits" unique_id=2100010002]
 position = Vector2(957.5, 660)
 
-[node name="EnemyManager" type="Node" parent="." unique_id=1208270822]
+[node name="EnemyManager" type="Node" parent="." unique_id=1208270822 node_paths=PackedStringArray("spawn_viewport_camera", "units_root")]
 script = ExtResource("4_u31j7")
 enemy_scene = ExtResource("6_iqp2g")
+max_alive_enemies = 300
+spawn_viewport_camera = NodePath("../Camera2D")
+units_root = NodePath("../BattleUnits")
+spawn_timeline_config = ExtResource("11_spawn_timeline")
 
 [node name="CardRuntime" type="Node" parent="." unique_id=1289256394]
 script = ExtResource("7_cardruntime")
