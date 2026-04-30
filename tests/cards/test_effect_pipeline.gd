@@ -125,6 +125,8 @@ static func test_parallel_spec_uses_catalog_defaults_when_fields_are_missing() -
 	spec.projectile_scene = null
 	spec.fire_sfx = null
 	spec.hit_sfx_first = null
+	spec.hit_sfx_pierce = null
+	spec.hit_sfx_reroute = null
 	var cmd = _first_command(
 		_assemble_entry(_entry_with_spec(spec), cat),
 		CmdScript.CmdKind.PROJECTILE_VOLLEY
@@ -133,6 +135,8 @@ static func test_parallel_spec_uses_catalog_defaults_when_fields_are_missing() -
 	TestSupport.assert_eq(cmd.projectile_scene_override, cat.default_projectile_scene, "parallel projectile fallback")
 	TestSupport.assert_eq(cmd.sfx_fire, cat.default_fire_sfx, "parallel fire sfx fallback")
 	TestSupport.assert_eq(cmd.sfx_hit_first, cat.default_hit_sfx_first, "parallel hit sfx fallback")
+	TestSupport.assert_eq(cmd.sfx_hit_pierce, cat.default_hit_sfx_pierce, "parallel pierce sfx fallback")
+	TestSupport.assert_eq(cmd.sfx_hit_reroute, cat.default_hit_sfx_reroute, "parallel reroute sfx fallback")
 
 
 static func test_waypoint_spec_uses_catalog_defaults_when_fields_are_missing() -> void:
@@ -141,6 +145,8 @@ static func test_waypoint_spec_uses_catalog_defaults_when_fields_are_missing() -
 	spec.waypoint_projectile_scene = null
 	spec.fire_sfx = null
 	spec.hit_sfx_first = null
+	spec.hit_sfx_pierce = null
+	spec.hit_sfx_reroute = null
 	var cmd = _first_command(
 		_assemble_entry(_entry_with_spec(spec), cat),
 		CmdScript.CmdKind.WAYPOINT_VOLLEY
@@ -149,6 +155,31 @@ static func test_waypoint_spec_uses_catalog_defaults_when_fields_are_missing() -
 	TestSupport.assert_eq(cmd.waypoint_projectile_scene_override, cat.default_projectile_scene, "waypoint projectile fallback")
 	TestSupport.assert_eq(cmd.sfx_fire, cat.default_fire_sfx, "waypoint fire sfx fallback")
 	TestSupport.assert_eq(cmd.sfx_hit_first, cat.default_hit_sfx_first, "waypoint hit sfx fallback")
+	TestSupport.assert_eq(cmd.sfx_hit_pierce, cat.default_hit_sfx_pierce, "waypoint pierce sfx fallback")
+	TestSupport.assert_eq(cmd.sfx_hit_reroute, cat.default_hit_sfx_reroute, "waypoint reroute sfx fallback")
+
+
+static func test_rank2_table_command_carries_complete_default_hit_sfx() -> void:
+	var source_cat: PlayShapeCatalog = load("res://config/card_shape_config.tres") as PlayShapeCatalog
+	var cmd = _first_command(_resolve([_card(2)], "SINGLE"), CmdScript.CmdKind.PROJECTILE_VOLLEY)
+	TestSupport.assert_true(cmd != null, "rank2 table projectile command")
+	TestSupport.assert_eq(cmd.sfx_fire, source_cat.default_fire_sfx, "rank2 table fire sfx")
+	TestSupport.assert_eq(cmd.sfx_hit_first, source_cat.default_hit_sfx_first, "rank2 table first-hit sfx")
+	TestSupport.assert_eq(cmd.sfx_hit_pierce, source_cat.default_hit_sfx_pierce, "rank2 table pierce-hit sfx")
+	TestSupport.assert_eq(cmd.sfx_hit_reroute, source_cat.default_hit_sfx_reroute, "rank2 table reroute-hit sfx")
+
+
+static func test_rank2_four_kind_waypoint_command_carries_complete_default_hit_sfx() -> void:
+	var source_cat: PlayShapeCatalog = load("res://config/card_shape_config.tres") as PlayShapeCatalog
+	var cmd = _first_command(
+		_resolve([_card(2), _card(2), _card(2), _card(2)], "FOUR_OF_A_KIND"),
+		CmdScript.CmdKind.WAYPOINT_VOLLEY
+	)
+	TestSupport.assert_true(cmd != null, "rank2 four-kind waypoint command")
+	TestSupport.assert_eq(cmd.sfx_fire, source_cat.default_fire_sfx, "rank2 waypoint fire sfx")
+	TestSupport.assert_eq(cmd.sfx_hit_first, source_cat.default_hit_sfx_first, "rank2 waypoint first-hit sfx")
+	TestSupport.assert_eq(cmd.sfx_hit_pierce, source_cat.default_hit_sfx_pierce, "rank2 waypoint pierce-hit sfx")
+	TestSupport.assert_eq(cmd.sfx_hit_reroute, source_cat.default_hit_sfx_reroute, "rank2 waypoint reroute-hit sfx")
 
 
 static func test_missing_projectile_scene_without_fallback_skips_command() -> void:
