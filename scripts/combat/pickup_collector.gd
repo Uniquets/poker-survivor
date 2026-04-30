@@ -40,10 +40,16 @@ func _physics_process(delta: float) -> void:
 		## 中文：超出磁力圈 — 本帧不牵引、不结算
 		if d > magnet_r:
 			continue
+		var can_magnet: bool = true
+		if pu.has_method("can_be_magnetized"):
+			can_magnet = bool(pu.call("can_be_magnetized"))
 		## 中文：已进入收集距离 — 执行效果并移除拾取物
 		if d <= collect_d:
 			eff.call("apply", _player)
 			pu.queue_free()
+			continue
+		## 中文：不可磁吸的拾取物只允许贴近拾取，不会被远距离牵引。
+		if not can_magnet:
 			continue
 		## 中文：磁力区内但未贴脸 — 沿径向向玩家牵引
 		var dir: Vector2 = (anchor - pu.global_position) / maxf(d, 0.001)

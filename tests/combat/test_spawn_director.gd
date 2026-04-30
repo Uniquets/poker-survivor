@@ -3,6 +3,7 @@ extends RefCounted
 const TestSupport = preload("res://tests/test_support.gd")
 const SpawnTimelineSegmentScript = preload("res://scripts/combat/spawn_timeline_segment.gd")
 const RunSpawnTimelineConfigScript = preload("res://scripts/combat/run_spawn_timeline_config.gd")
+const EliteSpawnEventScript = preload("res://scripts/combat/elite_spawn_event.gd")
 
 
 ## 验证时间段采用左闭右开区间，避免相邻段边界重复命中。
@@ -66,6 +67,18 @@ static func test_elite_event_triggers_once_after_time() -> void:
 	TestSupport.assert_true(manager.should_trigger_elite_event(10.0), "elite triggers at time")
 	manager.mark_elite_event_triggered(10.0)
 	TestSupport.assert_true(not manager.should_trigger_elite_event(12.0), "elite does not repeat")
+
+
+## 验证精英事件资源能按时间轴返回，并能被已触发记录屏蔽。
+static func test_spawn_config_returns_pending_elite_event_resource() -> void:
+	var event := EliteSpawnEventScript.new()
+	event.trigger_seconds = 12.0
+	var config := RunSpawnTimelineConfigScript.new()
+	config.elite_events = [event]
+
+	TestSupport.assert_eq(config.elite_event_for_time(11.9, {}), null, "elite event not ready")
+	TestSupport.assert_eq(config.elite_event_for_time(12.0, {}), event, "elite event ready")
+	TestSupport.assert_eq(config.elite_event_for_time(20.0, {12.0: true}), null, "elite event consumed")
 
 
 ## 验证 Boss 到点进入 Boss 模式且不会重复开始。

@@ -16,6 +16,8 @@ enum PickupKind {
 @export var effect: Variant = null
 ## 血包等：非空时显示精灵并隐藏 **`IconLabel`**
 @export var icon_texture: Texture2D = null
+## 是否允许被 PickupCollector 远距离磁吸；精英奖励卡牌会关闭该选项。
+@export var magnet_enabled: bool = true
 
 @onready var _icon_sprite: Sprite2D = get_node_or_null("IconSprite") as Sprite2D
 @onready var _icon_label: Label = get_node_or_null("IconLabel") as Label
@@ -24,6 +26,11 @@ enum PickupKind {
 ## 供 **`PickupCollector`** 读取效果资源（须含 **`apply(CombatPlayer)`**）
 func get_pickup_effect() -> Variant:
 	return effect
+
+
+## 返回本拾取物是否允许远距离磁吸。
+func can_be_magnetized() -> bool:
+	return magnet_enabled
 
 
 ## 进组并刷新可选图标（**`HealthPickup`** 等子节点）
