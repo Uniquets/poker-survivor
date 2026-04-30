@@ -36,6 +36,13 @@ const _HAND_SORT_SCENE := preload("res://scenes/ui/HandSortPanel.tscn")
 const _TEST_MENU_SCENE := preload("res://scenes/ui/TestMenuPanel.tscn")
 const _CardPickFlowScript: GDScript = preload("res://scripts/combat/card_pick_flow.gd")
 const _RunHudControllerScript: GDScript = preload("res://scripts/ui/run_hud_controller.gd")
+const _AddCardUpgradeEffectScript: GDScript = preload("res://scripts/upgrades/add_card_upgrade_effect.gd")
+
+@export_group("奖励池")
+## 升级时使用的三选一强化效果池；当前升级加牌会动态包装为 AddCardUpgradeEffect。
+@export var level_up_upgrade_pool: Resource = null
+## 精英奖励拾取时使用的三选一强化效果池。
+@export var elite_upgrade_pool: Resource = preload("res://config/upgrade_offer_pool_elite.tres")
 
 ## 由 **`_spawn_player_character`** 在 **`_ready`** 首段写入；根为 **`BattleUnits`** 子节点
 var player: CombatPlayer = null
