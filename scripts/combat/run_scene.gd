@@ -35,6 +35,7 @@ const _CARD_SELECT_SCENE := preload("res://scenes/ui/CardSelectUI.tscn")
 const _HAND_SORT_SCENE := preload("res://scenes/ui/HandSortPanel.tscn")
 const _TEST_MENU_SCENE := preload("res://scenes/ui/TestMenuPanel.tscn")
 const _CardPickFlowScript: GDScript = preload("res://scripts/combat/card_pick_flow.gd")
+const _RunHudControllerScript: GDScript = preload("res://scripts/ui/run_hud_controller.gd")
 
 ## 由 **`_spawn_player_character`** 在 **`_ready`** 首段写入；根为 **`BattleUnits`** 子节点
 var player: CombatPlayer = null
@@ -62,6 +63,7 @@ var card_select_ui: Control
 var test_menu_full_dim: ColorRect
 var hand_sort_panel: Control
 var test_menu_panel: Control
+var _run_hud: RunHudController = _RunHudControllerScript.new()
 
 ## 地图矩形（用于摄像机纵向夹紧与玩家 **`y`** 夹紧）；横向无限时 **`x`** 边界仅作占位，摄像机与玩家横向不夹到此矩形
 ## 中文：类体不读 **`GameConfig.GAME_GLOBAL`**；首帧由 **`_configure_dungeon_playfield`** 写入（避免与 `GameConfig` 静态初始化循环引用）
@@ -99,6 +101,12 @@ func _setup_transient_hud() -> void:
 	_hud.move_child(test_menu_full_dim, insert_after_layout)
 	_hud.add_child(hand_sort_panel)
 	_hud.add_child(test_menu_panel)
+	_run_hud.bind_health(health_bar, health_label)
+	_run_hud.bind_progression(level_label, exp_bar)
+	_run_hud.bind_mix_card_bar(mix_card_bar)
+	_run_hud.bind_match_clock(label_wave_timer)
+	_run_hud.bind_kill_count(label_resource_skull)
+	_run_hud.bind_hand_overlay(test_menu_full_dim, card_select_ui, card_hand_ui, test_menu_panel)
 
 
 ## 在 **`BattleUnits`** 下从 **`player_scene`** 生成玩家，并对齐 **`PlayerSpawn`**（**`Marker2D`**）世界坐标；失败时 **`push_error`**
@@ -146,7 +154,6 @@ func _ready() -> void:
 	enemy_manager.target = player
 	camera.global_position = player.global_position
 	_apply_camera_limits()
-	health_bar.max_value = player.get_effective_max_health()
 	_refresh_health_ui(player.current_health, player.get_effective_max_health())
 	_refresh_progression_ui(player.combat_level, player.get_xp_in_segment(), player.get_xp_needed_this_segment())
 
@@ -228,15 +235,7 @@ func _configure_dungeon_playfield() -> void:
 
 ## 同步测试菜单全屏压暗与手牌逐张提亮：选牌或 H 菜单打开且手牌可见时提亮；`TestMenuFullDim` 在手牌之下，与选牌 FullDim 同逻辑
 func _apply_hand_card_overlay_highlight() -> void:
-	if test_menu_full_dim != null and test_menu_panel != null:
-		test_menu_full_dim.visible = test_menu_panel.visible
-	if card_hand_ui == null:
-		return
-	var select_glow: bool = card_select_ui.visible and card_hand_ui.visible and _card_pick_flow.is_selecting_cards
-	var test_menu_glow: bool = test_menu_panel != null and test_menu_panel.visible and card_hand_ui.visible
-	var glow_on: bool = select_glow or test_menu_glow
-	if card_hand_ui.has_method("set_hand_card_overlay_glow"):
-		card_hand_ui.set_hand_card_overlay_glow(glow_on)
+	_run_hud.refresh_hand_card_overlay_highlight(_card_pick_flow.is_selecting_cards)
 
 
 ## 全局按键：H 开关测试菜单（仅 enable_test_functions 且非选卡流程中）
@@ -572,11 +571,7 @@ func _resume_after_level_up_card_flow() -> void:
 
 ## 经验条与等级文字刷新
 func _refresh_progression_ui(level: int, xp_in_segment: int, xp_needed: int) -> void:
-	if level_label != null:
-		level_label.text = "LV.%d" % level
-	if exp_bar != null:
-		exp_bar.max_value = maxf(float(xp_needed), 1.0)
-		exp_bar.value = float(xp_in_segment)
+	_run_hud.refresh_progression(level, xp_in_segment, xp_needed)
 
 
 ## 玩家经验状态变化（含升级后段长变化）
@@ -632,38 +627,29 @@ func _update_hud_match_clock(delta: float) -> void:
 
 ## 将剩余秒数格式化为 **`MM:SS`**
 func _refresh_match_clock_label() -> void:
-	if label_wave_timer == null:
-		return
-	var s: int = maxi(0, ceili(_match_display_seconds))
-	var m: int = int(floor(float(s) / 60.0))
-	var sec: int = s % 60
-	label_wave_timer.text = "%02d:%02d" % [m, sec]
+	_run_hud.refresh_match_clock(_match_display_seconds)
 
 
 ## **`MixCardBar`**：与 **`CardRuntime`** 装配阶段 **`assembly_interval`** 对齐
 func _init_mix_shuffle_bar() -> void:
-	if mix_card_bar == null:
-		return
-	mix_card_bar.min_value = 0.0
-	mix_card_bar.max_value = 100.0
-	mix_card_bar.value = 0.0
+	_run_hud.init_mix_shuffle_bar()
 
 
 ## 每帧用 **`CardRuntime.get_shuffle_wait_fill_ratio`** 驱动洗牌条
 func _update_hud_mix_shuffle_bar() -> void:
-	if mix_card_bar == null or card_runtime == null:
+	if card_runtime == null:
 		return
 	if not card_runtime.has_method("get_shuffle_wait_fill_ratio"):
 		return
 	var r: float = float(card_runtime.call("get_shuffle_wait_fill_ratio"))
-	mix_card_bar.value = r * 100.0
+	_run_hud.refresh_mix_shuffle_bar(r)
 
 
 ## 击杀数文案刷新
 func _refresh_kill_count_label() -> void:
-	if label_resource_skull == null or enemy_manager == null:
+	if enemy_manager == null:
 		return
-	label_resource_skull.text = str(enemy_manager.run_kill_count)
+	_run_hud.refresh_kill_count(enemy_manager.run_kill_count)
 
 
 ## **`EnemyManager.run_kill_count_changed`** 槽
@@ -751,9 +737,7 @@ func _apply_camera_limits() -> void:
 
 ## 更新血条数值与文字（着色由场景中 **`TextureProgressBar`** 的 **`tint_progress`** 等自行配置）
 func _refresh_health_ui(current_health: int, max_health: int) -> void:
-	health_bar.max_value = max_health
-	health_bar.value = current_health
-	health_label.text = "%d / %d" % [current_health, max_health]
+	_run_hud.refresh_health(current_health, max_health)
 
 
 ## 供 UI 查询场景内 CardRuntime 节点

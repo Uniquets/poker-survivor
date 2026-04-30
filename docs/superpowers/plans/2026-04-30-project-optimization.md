@@ -210,7 +210,7 @@ Required paths:
 - Modify: `scripts/combat/run_scene.gd`
 - Modify: `scenes/main/RunScene.tscn` only if adding a node is cleaner than script-only composition
 
-- [ ] Step 1: Move pure HUD refresh methods.
+- [x] Step 1: Move pure HUD refresh methods.
 
 Move candidates:
 - `_refresh_health_ui`
@@ -221,14 +221,14 @@ Move candidates:
 - `_update_hud_mix_shuffle_bar`
 - `_apply_hand_card_overlay_highlight`
 
-- [ ] Step 2: Keep gameplay state outside the HUD controller.
+- [x] Step 2: Keep gameplay state outside the HUD controller.
 
 Expected:
 - HUD controller receives values and node references.
 - HUD controller does not read `EnemyManager` or `CardRuntime` unless passed explicit values.
 - `RunScene` remains responsible for when values change.
 
-- [ ] Step 3: Run MCP smoke for visible UI.
+- [x] Step 3: Run MCP smoke for visible UI.
 
 Required checks:
 - Health text updates after damage or setup.
