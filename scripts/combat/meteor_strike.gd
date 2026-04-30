@@ -157,6 +157,7 @@ func on_impact_frame_event() -> void:
 	if _impact_done:
 		return
 	_impact_done = true
+	_play_impact_hit_sfx()
 	_apply_area_damage_once(_impact_area, _impact_damage)
 
 
@@ -209,6 +210,35 @@ func _apply_area_damage_once(area: Area2D, damage: int) -> void:
 		hit.damage = per_hit
 		hit.knockback_speed = 0.0
 		CombatHurtbox2D.deliver_to_enemy_best_effort(enemy, hit, enemy_pos)
+
+
+func resolve_impact_hit_sfx() -> AudioStream:
+	var cat: PlayShapeCatalog = GameConfig.PLAY_SHAPE_CATALOG as PlayShapeCatalog
+	if cat == null:
+		cat = load("res://config/card_shape_config.tres") as PlayShapeCatalog
+	return cat.default_hit_sfx_first if cat != null else null
+
+
+func _play_impact_hit_sfx() -> void:
+	var stream: AudioStream = resolve_impact_hit_sfx()
+	if stream == null:
+		return
+	var ap := AudioStreamPlayer2D.new()
+	ap.stream = stream.duplicate(true) as AudioStream
+	ap.global_position = global_position
+	ap.finished.connect(ap.queue_free)
+	call_deferred("_deferred_attach_impact_hit_sfx_player", ap)
+
+
+func _deferred_attach_impact_hit_sfx_player(ap: AudioStreamPlayer2D) -> void:
+	if not is_instance_valid(ap):
+		return
+	var holder: Node = get_parent()
+	if holder == null or not is_instance_valid(holder):
+		ap.queue_free()
+		return
+	holder.add_child(ap)
+	ap.play()
 
 
 ## 对 Area2D 重叠敌人结算一次 DoT 跳伤（无击退）。
