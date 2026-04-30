@@ -267,6 +267,9 @@ func show_upgrade_effects(effects: Array) -> void:
 	for effect in effects:
 		if effect is Resource:
 			_upgrade_effect_options.append(effect)
+			var display_card: CardResource = _display_card_for_effect(effect)
+			if display_card != null:
+				_card_options.append(display_card)
 	_display_options()
 	_is_selecting = true
 	if is_instance_valid(_skip_offer_button) and is_instance_valid(_skip_offer_row) and _skip_offer_row.visible:

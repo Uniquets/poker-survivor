@@ -78,6 +78,8 @@ var _map_bounds: Rect2 = Rect2()
 ## 与 **`GameConfig.GAME_GLOBAL.dungeon_horizontal_infinite`** 同步；在 **`_configure_dungeon_playfield`** 写入
 var _dungeon_horizontal_infinite: bool = false
 var _card_pick_flow: CardPickFlow = _CardPickFlowScript.new()
+## 当前显示中的强化效果三选一选项。
+var _current_upgrade_offer: Array = []
 ## 升级选卡时 **`CardSelectUI`** 的 **`z_index`**：须高于底栏 **`CardHandUI`**，否则底部「跳过」键被手牌层盖住
 const _CARD_SELECT_Z_ABOVE_HAND: int = 80
 ## 顶部 HUD 倒计时展示用总秒数（**20 分钟**）；仅展示递减，胜负等逻辑后续再接
@@ -153,6 +155,8 @@ func _ready() -> void:
 	card_runtime.hand_updated.connect(_on_hand_updated)
 	card_runtime.group_played.connect(_on_group_played)
 	card_select_ui.card_selected.connect(_on_card_pick_from_ui)
+	if card_select_ui.has_signal("upgrade_effect_selected"):
+		card_select_ui.upgrade_effect_selected.connect(_on_upgrade_effect_selected)
 	if card_select_ui.has_signal("offer_skipped"):
 		card_select_ui.offer_skipped.connect(_on_card_select_offer_skipped)
 
@@ -403,7 +407,8 @@ func _on_card_select_offer_skipped() -> void:
 			_resume_after_level_up_card_flow()
 			return
 		card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _card_pick_flow.pending_level_up_card_picks)
-		card_select_ui.show_cards(random_cards)
+		_current_upgrade_offer = _cards_to_add_card_effects(random_cards)
+		card_select_ui.show_upgrade_effects(_current_upgrade_offer)
 		return
 	_resume_after_level_up_card_flow()
 
@@ -481,6 +486,92 @@ func grant_global_permanent_volley_bonus() -> void:
 		auto_attack_system.grant_permanent_volley_plus_one()
 
 
+## 拾取物入口：打开指定奖励池的强化效果三选一。
+func begin_pickup_upgrade_offer(pool: Resource, title: String) -> void:
+	_begin_upgrade_effect_offer(pool, title)
+
+
+## 对外奖励入口：打开当前手牌调序面板。
+func open_hand_sort_reward() -> void:
+	_open_hand_sort_overlay()
+
+
+## 打开强化效果三选一，并复用升级选卡的暂停层。
+func _begin_upgrade_effect_offer(pool: Resource, title: String) -> void:
+	if pool == null or not pool.has_method("roll_offer"):
+		return
+	_current_upgrade_offer = pool.call("roll_offer", 3) as Array
+	if _current_upgrade_offer.is_empty():
+		return
+	_card_pick_flow.card_pick_mode = CardPickFlow.PickMode.LEVEL_UP
+	_card_pick_flow.is_selecting_cards = true
+	enemy_manager.set_active(false)
+	auto_attack_system.process_mode = Node.PROCESS_MODE_DISABLED
+	card_runtime.process_mode = Node.PROCESS_MODE_DISABLED
+	card_select_ui.set_title(title)
+	card_select_ui.z_index = _CARD_SELECT_Z_ABOVE_HAND
+	card_select_ui.show_upgrade_effects(_current_upgrade_offer)
+	if card_select_ui.has_method("set_skip_offer_visible"):
+		card_select_ui.set_skip_offer_visible(false)
+	card_select_ui.visible = true
+	card_hand_ui.visible = true
+	_hud.process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().paused = true
+	_apply_hand_card_overlay_highlight()
+
+
+## 强化效果被选中后按是否需要二级目标分发。
+func _on_upgrade_effect_selected(effect: Resource) -> void:
+	if effect == null:
+		return
+	if bool(effect.get("requires_deck_target")):
+		_apply_default_deck_target_to_effect(effect)
+	_apply_upgrade_effect_and_resume(effect)
+
+
+## 第一版为需要牌组目标的效果写入一个默认目标，后续可替换为手牌点选 UI。
+func _apply_default_deck_target_to_effect(effect: Resource) -> void:
+	if effect == null or card_runtime == null or card_runtime.cards.is_empty():
+		return
+	if effect.get("selected_index") != null:
+		effect.set("selected_index", card_runtime.cards.size() - 1)
+
+
+## 应用强化效果并处理升级多次选择的续抽。
+func _apply_upgrade_effect_and_resume(effect: Resource) -> void:
+	var card_pool := get_node_or_null("/root/CardPool")
+	if effect.get_script() == _AddCardUpgradeEffectScript and effect.get("card") is CardResource:
+		card_select_ui.finalize_pick_from_current_offer(effect.get("card") as CardResource)
+	if effect.has_method("apply_to_run"):
+		effect.call("apply_to_run", card_runtime, self, card_pool)
+	if effect.get_script() == _AddCardUpgradeEffectScript and _card_pick_flow.pending_level_up_card_picks > 0:
+		_card_pick_flow.pending_level_up_card_picks = maxi(0, _card_pick_flow.pending_level_up_card_picks - 1)
+		if _card_pick_flow.pending_level_up_card_picks > 0:
+			_begin_level_up_card_selection()
+			return
+	_resume_after_upgrade_effect_offer()
+
+
+## 关闭强化效果 UI 并恢复战斗。
+func _resume_after_upgrade_effect_offer() -> void:
+	_current_upgrade_offer = []
+	_resume_after_level_up_card_flow()
+
+
+## 将候选卡包装成加牌强化效果，使升级三选一也走统一效果流程。
+func _cards_to_add_card_effects(cards: Array) -> Array:
+	var effects: Array = []
+	for card in cards:
+		if not card is CardResource:
+			continue
+		var effect: Resource = _AddCardUpgradeEffectScript.new()
+		effect.set("card", card)
+		effect.set("title", "拾取 %s" % (card as CardResource).get_full_name())
+		effect.set("description", "加入当前牌组")
+		effects.append(effect)
+	return effects
+
+
 ## 升级选卡：若当前不在其它选卡流程中则开启暂停与三选一
 func _deferred_try_begin_level_up_pick() -> void:
 	if _card_pick_flow.pending_level_up_card_picks <= 0:
@@ -514,7 +605,8 @@ func _begin_level_up_card_selection() -> void:
 
 	card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _card_pick_flow.pending_level_up_card_picks)
 	card_select_ui.z_index = _CARD_SELECT_Z_ABOVE_HAND
-	card_select_ui.show_cards(random_cards)
+	_current_upgrade_offer = _cards_to_add_card_effects(random_cards)
+	card_select_ui.show_upgrade_effects(_current_upgrade_offer)
 	if card_select_ui.has_method("set_skip_offer_visible"):
 		card_select_ui.set_skip_offer_visible(true)
 	card_select_ui.visible = true
@@ -552,7 +644,8 @@ func _complete_level_up_card(card: CardResource) -> void:
 			_resume_after_level_up_card_flow()
 			return
 		card_select_ui.set_title("升级！请选择一张卡牌（剩余 %d 次）" % _card_pick_flow.pending_level_up_card_picks)
-		card_select_ui.show_cards(random_cards)
+		_current_upgrade_offer = _cards_to_add_card_effects(random_cards)
+		card_select_ui.show_upgrade_effects(_current_upgrade_offer)
 		return
 
 	_resume_after_level_up_card_flow()

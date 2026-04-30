@@ -217,6 +217,10 @@ func _update_timeline_state() -> void:
 	if not _has_valid_spawn_timeline():
 		return
 	apply_spawn_segment(spawn_timeline_config.call("segment_for_time", _match_elapsed_seconds) as Resource)
+	var elite_event: Resource = pending_elite_event_for_time(_match_elapsed_seconds)
+	if elite_event != null:
+		mark_elite_event_triggered_from_event(elite_event)
+		_spawn_elite_from_event(elite_event)
 	if should_trigger_elite_event(_match_elapsed_seconds):
 		mark_elite_event_triggered(_match_elapsed_seconds)
 		print("[spawn] elite_event_ready | time=%.1f" % _match_elapsed_seconds)
@@ -247,6 +251,49 @@ func mark_elite_event_triggered(match_seconds: float) -> void:
 		if match_seconds >= t and not _triggered_elite_event_seconds.has(t):
 			_triggered_elite_event_seconds[t] = true
 			return
+
+
+## 返回当前时间可触发的精英事件资源。
+func pending_elite_event_for_time(match_seconds: float) -> Resource:
+	if not _has_valid_spawn_timeline():
+		return null
+	if not spawn_timeline_config.has_method("elite_event_for_time"):
+		return null
+	return spawn_timeline_config.call("elite_event_for_time", match_seconds, _triggered_elite_event_seconds) as Resource
+
+
+## 标记精英事件已触发，避免同一事件重复生成。
+func mark_elite_event_triggered_from_event(event: Resource) -> void:
+	if event == null:
+		return
+	_triggered_elite_event_seconds[float(event.get("trigger_seconds"))] = true
+
+
+## 生成精英敌人；该流程不会暂停或压制普通刷怪。
+func _spawn_elite_from_event(event: Resource) -> void:
+	var packed_scene: PackedScene = event.get("elite_scene") as PackedScene
+	if packed_scene == null:
+		packed_scene = enemy_scene
+	if packed_scene == null:
+		return
+	var enemy: Node = packed_scene.instantiate()
+	if enemy == null:
+		return
+	enemy.global_position = _pick_spawn_world_position()
+	if enemy is CombatEnemy:
+		var combat_enemy := enemy as CombatEnemy
+		combat_enemy.target = resolve_spawn_target()
+		if combat_enemy.has_method("configure_as_elite"):
+			combat_enemy.configure_as_elite(
+				float(event.get("visual_scale_multiplier")),
+				event.get("elite_modulate") as Color,
+				float(event.get("health_multiplier")),
+				float(event.get("move_speed_multiplier")),
+				float(event.get("touch_damage_multiplier")),
+				event.get("death_drop_entries") as Array
+			)
+	get_units_root().add_child(enemy)
+	print("[spawn] elite_spawned | time=%.1f" % _match_elapsed_seconds)
 
 
 ## 判断是否到达 Boss 入场时间。

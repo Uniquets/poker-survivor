@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="UpgradeOfferPool" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_offer_pool.gd" id="1_pool"]
+
+[resource]
+script = ExtResource("1_pool")
+effects = Array[Resource]([])

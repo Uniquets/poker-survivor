@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/battle_pickup.gd" id="1_pickup"]
+[ext_resource type="Script" path="res://scripts/combat/upgrade_offer_pickup_effect.gd" id="2_effect"]
+[ext_resource type="Resource" path="res://config/upgrade_offer_pool_elite.tres" id="3_pool"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.88, 0.96, 0.78, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.13, 0.16, 0.12, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="Resource" id="Resource_offer_effect"]
+script = ExtResource("2_effect")
+offer_pool = ExtResource("3_pool")
+offer_title = "精英奖励"
+
+[node name="EliteRewardCardPickup" type="Node2D"]
+script = ExtResource("1_pickup")
+pickup_kind = 2
+effect = SubResource("Resource_offer_effect")
+magnet_enabled = false
+
+[node name="CardPanel" type="Panel" parent="."]
+offset_left = -16.0
+offset_top = -24.0
+offset_right = 16.0
+offset_bottom = 24.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="IconLabel" type="Label" parent="."]
+offset_left = -15.0
+offset_top = -16.0
+offset_right = 15.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.08, 0.07, 0.06, 1)
+theme_override_font_sizes/font_size = 12
+text = "奖励"
+horizontal_alignment = 1
+vertical_alignment = 1

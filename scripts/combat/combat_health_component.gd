@@ -84,3 +84,14 @@ func take_damage_enemy(
 ## 敌当前生命（供扩展）
 func get_enemy_current_health() -> int:
 	return _enemy_current_health
+
+
+## 覆盖敌人最大生命值，并可选把当前生命回满。
+func set_enemy_max_health(value: int, refill: bool) -> void:
+	if _host_mode != _HostMode.ENEMY or _enemy == null:
+		return
+	_enemy.max_health = maxi(1, value)
+	if refill:
+		_enemy_current_health = _enemy.max_health
+	else:
+		_enemy_current_health = mini(_enemy_current_health, _enemy.max_health)

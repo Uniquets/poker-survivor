@@ -17,10 +17,8 @@ func get_display_card() -> CardResource:
 	return card
 
 
-## 将配置卡加入当前 CardRuntime，并可选通知 CardPool 消耗该卡。
+## 将配置卡加入当前 CardRuntime；卡池归还与消耗由发放流程负责。
 func apply_to_run(card_runtime: CardRuntime, _run_scene: Object, card_pool: Object) -> void:
 	if card_runtime == null or card == null:
 		return
 	card_runtime.add_card(card)
-	if card_pool != null and card_pool.has_method("consume_card"):
-		card_pool.call("consume_card", card)

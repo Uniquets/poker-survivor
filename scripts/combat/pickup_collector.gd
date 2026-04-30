@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		if not pu.has_method("get_pickup_effect"):
 			continue
 		var eff: Variant = pu.call("get_pickup_effect")
-		if eff == null or eff.get_script() != _PickupEffectConfigScript:
+		if eff == null or not eff.has_method("apply"):
 			continue
 		var d: float = pu.global_position.distance_to(anchor)
 		## 中文：超出磁力圈 — 本帧不牵引、不结算

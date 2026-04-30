@@ -15,6 +15,8 @@ const _EnemyDropEntryScript: GDScript = preload("res://scripts/combat/enemy_drop
 @export var max_health: int = 30
 ## 单种敌人死亡时按条目独立掷概率；元素须为 **`EnemyDropEntry`** 资源（**`enemy_drop_entry.gd`**）；空数组则不掉落
 @export var death_drop_entries: Array = []
+## 是否为精英敌人；精英只改变外观、数值和死亡掉落，不直接发奖励信号。
+@export var is_elite: bool = false
 ## 与 **`class_name CombatHealthComponent`** 同脚本；**`preload`** 供本文件类型解析与 LSP，避免仅依赖全局类名索引顺序
 const _CombatHealthComponentScript = preload("res://scripts/combat/combat_health_component.gd")
 
@@ -47,6 +49,30 @@ var _hit_flash_tween: Tween = null
 var _knockback_velocity: Vector2 = Vector2.ZERO
 ## 击退残留指数衰减系数（秒⁻¹）；由 **`apply_hit_knockback`** 根据投递解析刷新；**`_ready`** 对齐牌型默认
 var _knockback_decay_rate: float = 7.0
+var _elite_visual_scale_multiplier: float = 1.0
+var _elite_modulate: Color = Color.WHITE
+var _elite_health_multiplier: float = 1.0
+var _elite_move_speed_multiplier: float = 1.0
+var _elite_touch_damage_multiplier: float = 1.0
+var _elite_death_drop_entries: Array = []
+
+
+## 标记本敌人为精英，并保存外观、数值和掉落配置。
+func configure_as_elite(
+	visual_scale_multiplier: float,
+	elite_modulate: Color,
+	health_multiplier: float,
+	move_speed_multiplier: float,
+	touch_damage_multiplier: float,
+	p_death_drop_entries: Array
+) -> void:
+	is_elite = true
+	_elite_visual_scale_multiplier = maxf(1.0, visual_scale_multiplier)
+	_elite_modulate = elite_modulate
+	_elite_health_multiplier = maxf(1.0, health_multiplier)
+	_elite_move_speed_multiplier = maxf(0.1, move_speed_multiplier)
+	_elite_touch_damage_multiplier = maxf(0.1, touch_damage_multiplier)
+	_elite_death_drop_entries = p_death_drop_entries.duplicate()
 
 
 ## 初始化生命与碰撞层；若槽位绑定 **`AnimatedSprite2D`** 则播放首段动画（美术敌人），并避免占位 `_draw` 盖住精灵；配置贴近玩家的 **`CombatHitbox2D`**
@@ -65,9 +91,22 @@ func _ready() -> void:
 	if hc != null and hc.get_script() == _CombatHealthComponentScript:
 		if not hc.depleted.is_connected(_on_combat_health_depleted):
 			hc.depleted.connect(_on_combat_health_depleted)
+		if is_elite and hc.has_method("set_enemy_max_health"):
+			hc.call("set_enemy_max_health", int(round(float(max_health) * _elite_health_multiplier)), true)
+	if is_elite:
+		_apply_elite_config()
 	_knockback_decay_rate = GameConfig.COMBAT_PRESENTATION.hit_knockback_decay_per_second
 	## 推迟：等 **`EnemyContactHitbox2D`** 将 **`HitShape`** **`reparent`** 后再调半径与监听
 	call_deferred("_setup_contact_hitbox")
+
+
+## 应用精英外观、移动、接触伤害和死亡掉落配置。
+func _apply_elite_config() -> void:
+	scale *= _elite_visual_scale_multiplier
+	modulate = _elite_modulate
+	move_speed *= _elite_move_speed_multiplier
+	touch_damage = maxi(1, int(round(float(touch_damage) * _elite_touch_damage_multiplier)))
+	death_drop_entries = _elite_death_drop_entries.duplicate()
 
 
 ## **`CombatHealthComponent`** 生命归零：进入死亡流程
